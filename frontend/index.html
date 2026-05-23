@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Punteos Académicos</title>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginView" class="login-container">
+    <div class="hero-card card">
+      <h1>Sistema de Punteos</h1>
+
+      <div class="instituto">
+        Instituto Básico y Diversificado por cooperativa Aldea San Luis,
+        San Sebástian, Retalhuleu.
+      </div>
+
+      <p>
+        Plataforma para consultar, registrar, actualizar, eliminar
+        e importar punteos de los estudiantes.
+      </p>
+
+      <div class="mission-vision">
+        <div class="mv-box">
+          <h3>Misión</h3>
+          <p>
+            Brindar una formación académica integral, fomentando valores,
+            responsabilidad y superación personal en los estudiantes, mediante
+            procesos educativos organizados y de calidad.
+          </p>
+        </div>
+
+        <div class="mv-box">
+          <h3>Visión</h3>
+          <p>
+            Ser una institución educativa reconocida por formar estudiantes
+            competentes, responsables y preparados para continuar sus estudios
+            o integrarse positivamente a la sociedad.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Iniciar sesión</h2>
+
+      <div class="form-group">
+        <label for="rolLogin">Tipo de usuario</label>
+        <select id="rolLogin">
+          <option value="docente">Docente</option>
+          <option value="estudiante">Estudiante</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="codigoLogin">Código de carnet</label>
+        <input type="text" id="codigoLogin" placeholder="Insertar" />
+      </div>
+
+      <div class="form-group">
+        <label for="nombreLogin">Nombre completo</label>
+        <input type="text" id="nombreLogin" placeholder="Ingrese su nombre completo" />
+      </div>
+
+      <button class="btn-primary btn-full" onclick="iniciarSesion()">
+        Entrar al sistema
+      </button>
+
+      <div id="mensajeLogin" class="message"></div>
+    </div>
+  </div>
+
+  <!-- APLICACIÓN -->
+  <div id="appView" class="hidden">
+    <div class="topbar">
+      <div>
+        <strong>Instituto Básico y Diversificado por cooperativa Aldea San Luis</strong>
+        <span id="usuarioActual"></span>
+      </div>
+
+      <button class="btn-danger" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+
+    <div class="container">
+
+      <!-- PANEL DOCENTE -->
+      <div id="panelDocente" class="hidden">
+        <div class="card">
+          <h2>Panel del docente</h2>
+
+          <div class="menu">
+            <button id="btnVer" class="active" onclick="mostrarSeccionDocente('ver')">
+              Ver todos los punteos
+            </button>
+
+            <button id="btnInsertar" onclick="mostrarSeccionDocente('insertar')">
+              Insertar punteo
+            </button>
+
+            <button id="btnActualizar" onclick="mostrarSeccionDocente('actualizar')">
+              Actualizar punteo
+            </button>
+
+            <button id="btnEliminar" onclick="mostrarSeccionDocente('eliminar')">
+              Eliminar punteo
+            </button>
+
+            <button id="btnImportar" onclick="mostrarSeccionDocente('importar')">
+              Importar documento de excel
+            </button>
+          </div>
+        </div>
+
+        <!-- VER PUNTEOS -->
+        <div id="seccionVer" class="card docente-section">
+          <div class="section-title">
+            <h2>Todos los punteos</h2>
+            <button class="btn-primary" onclick="cargarPunteosDocente()">Actualizar tabla</button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Carrera</label>
+              <select id="filtroCarrera"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Grado</label>
+              <select id="filtroGrado"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Curso</label>
+              <select id="filtroCurso"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Ciclo escolar</label>
+              <select id="filtroCiclo"></select>
+            </div>
+          </div>
+
+          <button class="btn-dark" onclick="cargarPunteosDocente()">Buscar con filtros</button>
+
+          <div id="mensajeVer" class="message"></div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Alumno</th>
+                  <th>Carrera</th>
+                  <th>Grado</th>
+                  <th>Curso</th>
+                  <th>Ciclo</th>
+                  <th>1er Bim.</th>
+                  <th>2do Bim.</th>
+                  <th>3er Bim.</th>
+                  <th>4to Bim.</th>
+                  <th>Promedio</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tablaPunteosDocente"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- INSERTAR -->
+        <div id="seccionInsertar" class="card docente-section hidden">
+          <h2>Insertar punteo</h2>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Código de carnet</label>
+              <input id="insCodigo" type="text" placeholder="Insertar" />
+            </div>
+
+            <div class="form-group">
+              <label>Carrera</label>
+              <select id="insCarrera"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Grado</label>
+              <select id="insGrado"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Curso</label>
+              <select id="insCurso"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Bimestre</label>
+              <select id="insBimestre"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Ciclo escolar</label>
+              <select id="insCiclo"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Actitudinal</label>
+              <input id="insActitudinal" type="number" min="0" max="100" step="0.01" />
+            </div>
+
+            <div class="form-group">
+              <label>Zona</label>
+              <input id="insZona" type="number" min="0" max="100" step="0.01" />
+            </div>
+
+            <div class="form-group">
+              <label>Examen</label>
+              <input id="insExamen" type="number" min="0" max="100" step="0.01" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Observación</label>
+            <textarea id="insObservacion" placeholder="Opcional"></textarea>
+          </div>
+
+          <button class="btn-success" onclick="insertarNota()">Guardar punteo</button>
+          <div id="mensajeInsertar" class="message"></div>
+        </div>
+
+        <!-- ACTUALIZAR -->
+        <div id="seccionActualizar" class="card docente-section hidden">
+          <h2>Actualizar punteo</h2>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Código de carnet</label>
+              <input id="updCodigo" type="text" placeholder="Insertar" />
+            </div>
+
+            <div class="form-group">
+              <label>Carrera</label>
+              <select id="updCarrera"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Grado</label>
+              <select id="updGrado"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Curso</label>
+              <select id="updCurso"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Bimestre</label>
+              <select id="updBimestre"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Ciclo escolar</label>
+              <select id="updCiclo"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Nuevo actitudinal</label>
+              <input id="updActitudinal" type="number" min="0" max="100" step="0.01" />
+            </div>
+
+            <div class="form-group">
+              <label>Nueva zona</label>
+              <input id="updZona" type="number" min="0" max="100" step="0.01" />
+            </div>
+
+            <div class="form-group">
+              <label>Nuevo examen</label>
+              <input id="updExamen" type="number" min="0" max="100" step="0.01" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Observación</label>
+            <textarea id="updObservacion" placeholder="Opcional"></textarea>
+          </div>
+
+          <button class="btn-warning" onclick="actualizarNota()">Actualizar punteo</button>
+          <div id="mensajeActualizar" class="message"></div>
+        </div>
+
+        <!-- ELIMINAR -->
+        <div id="seccionEliminar" class="card docente-section hidden">
+          <h2>Eliminar punteo</h2>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Código de carnet</label>
+              <input id="delCodigo" type="text" placeholder="Insertar" />
+            </div>
+
+            <div class="form-group">
+              <label>Carrera</label>
+              <select id="delCarrera"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Grado</label>
+              <select id="delGrado"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Curso</label>
+              <select id="delCurso"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Bimestre</label>
+              <select id="delBimestre"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Ciclo escolar</label>
+              <select id="delCiclo"></select>
+            </div>
+          </div>
+
+          <button class="btn-danger" onclick="eliminarNota()">Eliminar punteo</button>
+          <div id="mensajeEliminar" class="message"></div>
+        </div>
+
+        <!-- IMPORTAR EXCEL -->
+        <div id="seccionImportar" class="card docente-section hidden">
+          <h2>Importar punteos desde Excel</h2>
+
+          <p>
+            El archivo Excel debe tener estas columnas:
+            <strong>codigo_carnet, actitudinal, zona, examen, observacion</strong>.
+          </p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Carrera</label>
+              <select id="impCarrera"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Grado</label>
+              <select id="impGrado"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Curso</label>
+              <select id="impCurso"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Bimestre</label>
+              <select id="impBimestre"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Ciclo escolar</label>
+              <select id="impCiclo"></select>
+            </div>
+
+            <div class="form-group">
+              <label>Archivo Excel</label>
+              <input id="impArchivo" type="file" accept=".xlsx" />
+            </div>
+          </div>
+
+          <button class="btn-success" onclick="importarExcel()">Importar Excel</button>
+          <div id="mensajeImportar" class="message"></div>
+        </div>
+      </div>
+
+      <!-- PANEL ESTUDIANTE -->
+      <div id="panelEstudiante" class="hidden">
+        <div class="card">
+          <h2>Panel del estudiante</h2>
+
+          <div class="student-info">
+            <div class="info-box">
+              <strong>Código de carnet</strong>
+              <span id="estCodigo"></span>
+            </div>
+
+            <div class="info-box">
+              <strong>Nombre completo</strong>
+              <span id="estNombre"></span>
+            </div>
+
+            <div class="info-box">
+              <strong>Carrera</strong>
+              <span id="estCarrera"></span>
+            </div>
+
+            <div class="info-box">
+              <strong>Grado</strong>
+              <span id="estGrado"></span>
+            </div>
+
+            <div class="info-box">
+              <strong>Ciclo escolar</strong>
+              <span id="estCiclo"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Mis punteos por curso</h2>
+
+          <div id="mensajeEstudiante" class="message"></div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Curso</th>
+                  <th>1er Bimestre</th>
+                  <th>2do Bimestre</th>
+                  <th>3er Bimestre</th>
+                  <th>4to Bimestre</th>
+                  <th>Promedio</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tablaEstudiante"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000";
+
+    let usuarioActual = null;
+    let catalogosCargados = false;
+
+    async function iniciarSesion() {
+      const rol = document.getElementById("rolLogin").value;
+      const codigo = document.getElementById("codigoLogin").value.trim();
+      const nombre = document.getElementById("nombreLogin").value.trim();
+
+      if (!codigo || !nombre) {
+        mostrarMensaje("mensajeLogin", "Debe ingresar código y nombre completo.", "error");
+        return;
+      }
+
+      mostrarMensaje("mensajeLogin", "Validando datos...", "info");
+
+      try {
+        const respuesta = await fetch(`${API_URL}/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            rol: rol,
+            codigo: codigo,
+            nombre_completo: nombre
+          })
+        });
+
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "No se pudo iniciar sesión.");
+        }
+
+        usuarioActual = data;
+
+        document.getElementById("loginView").classList.add("hidden");
+        document.getElementById("appView").classList.remove("hidden");
+
+        if (data.rol === "docente") {
+          document.getElementById("usuarioActual").textContent =
+            `Docente: ${data.nombre_completo} | Código: ${data.codigo}`;
+
+          document.getElementById("panelDocente").classList.remove("hidden");
+          document.getElementById("panelEstudiante").classList.add("hidden");
+
+          await cargarCatalogos();
+          await cargarPunteosDocente();
+
+        } else {
+          const nombreCompleto = `${data.nombres} ${data.apellidos}`;
+
+          document.getElementById("usuarioActual").textContent =
+            `Estudiante: ${nombreCompleto} | Código: ${data.codigo}`;
+
+          document.getElementById("panelDocente").classList.add("hidden");
+          document.getElementById("panelEstudiante").classList.remove("hidden");
+
+          await cargarDatosEstudiante(data.codigo);
+        }
+
+      } catch (error) {
+        mostrarMensaje("mensajeLogin", error.message, "error");
+      }
+    }
+
+    function cerrarSesion() {
+      usuarioActual = null;
+      document.getElementById("appView").classList.add("hidden");
+      document.getElementById("loginView").classList.remove("hidden");
+      document.getElementById("codigoLogin").value = "";
+      document.getElementById("nombreLogin").value = "";
+      mostrarMensaje("mensajeLogin", "", "");
+      location.reload();
+    }
+
+    async function cargarCatalogos() {
+      if (catalogosCargados) return;
+
+      try {
+        const respuesta = await fetch(`${API_URL}/catalogos`);
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "Error al cargar catálogos.");
+        }
+
+        llenarSelect("filtroCarrera", data.carreras, "nombre", "Todas las carreras");
+        llenarSelect("filtroGrado", data.grados, "nombre", "Todos los grados");
+        llenarSelect("filtroCurso", data.cursos, "nombre", "Todos los cursos");
+        llenarSelect("filtroCiclo", data.ciclos, "anio", "Todos los ciclos");
+
+        ["insCarrera", "updCarrera", "delCarrera", "impCarrera"].forEach(id => {
+          llenarSelect(id, data.carreras, "nombre", "Seleccione carrera");
+        });
+
+        ["insGrado", "updGrado", "delGrado", "impGrado"].forEach(id => {
+          llenarSelect(id, data.grados, "nombre", "Seleccione grado");
+        });
+
+        ["insCurso", "updCurso", "delCurso", "impCurso"].forEach(id => {
+          llenarSelect(id, data.cursos, "nombre", "Seleccione curso");
+        });
+
+        ["insBimestre", "updBimestre", "delBimestre", "impBimestre"].forEach(id => {
+          llenarSelect(id, data.bimestres, "nombre", "Seleccione bimestre");
+        });
+
+        ["insCiclo", "updCiclo", "delCiclo", "impCiclo"].forEach(id => {
+          llenarSelect(id, data.ciclos, "anio", "Seleccione ciclo");
+        });
+
+        catalogosCargados = true;
+
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    function llenarSelect(id, datos, campo, textoInicial) {
+      const select = document.getElementById(id);
+      select.innerHTML = "";
+
+      const optionInicial = document.createElement("option");
+      optionInicial.value = "";
+      optionInicial.textContent = textoInicial;
+      select.appendChild(optionInicial);
+
+      datos.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item[campo];
+        option.textContent = item[campo];
+        select.appendChild(option);
+      });
+    }
+
+    function mostrarSeccionDocente(seccion) {
+      document.querySelectorAll(".docente-section").forEach(sec => {
+        sec.classList.add("hidden");
+      });
+
+      document.querySelectorAll(".menu button").forEach(btn => {
+        btn.classList.remove("active");
+      });
+
+      if (seccion === "ver") {
+        document.getElementById("seccionVer").classList.remove("hidden");
+        document.getElementById("btnVer").classList.add("active");
+      }
+
+      if (seccion === "insertar") {
+        document.getElementById("seccionInsertar").classList.remove("hidden");
+        document.getElementById("btnInsertar").classList.add("active");
+      }
+
+      if (seccion === "actualizar") {
+        document.getElementById("seccionActualizar").classList.remove("hidden");
+        document.getElementById("btnActualizar").classList.add("active");
+      }
+
+      if (seccion === "eliminar") {
+        document.getElementById("seccionEliminar").classList.remove("hidden");
+        document.getElementById("btnEliminar").classList.add("active");
+      }
+
+      if (seccion === "importar") {
+        document.getElementById("seccionImportar").classList.remove("hidden");
+        document.getElementById("btnImportar").classList.add("active");
+      }
+    }
+
+    async function cargarPunteosDocente() {
+      mostrarMensaje("mensajeVer", "Cargando punteos...", "info");
+
+      const params = new URLSearchParams();
+
+      const carrera = document.getElementById("filtroCarrera").value;
+      const grado = document.getElementById("filtroGrado").value;
+      const curso = document.getElementById("filtroCurso").value;
+      const ciclo = document.getElementById("filtroCiclo").value;
+
+      if (carrera) params.append("carrera", carrera);
+      if (grado) params.append("grado", grado);
+      if (curso) params.append("curso", curso);
+      if (ciclo) params.append("ciclo_escolar", ciclo);
+
+      const url = params.toString()
+        ? `${API_URL}/docente/punteos?${params.toString()}`
+        : `${API_URL}/docente/punteos`;
+
+      try {
+        const respuesta = await fetch(url);
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "Error al cargar punteos.");
+        }
+
+        const tbody = document.getElementById("tablaPunteosDocente");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          mostrarMensaje("mensajeVer", "No hay registros para mostrar.", "info");
+          return;
+        }
+
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td>${escapar(row.codigo_carnet)}</td>
+            <td>${escapar(row.apellidos)}, ${escapar(row.nombres)}</td>
+            <td>${escapar(row.carrera)}</td>
+            <td>${escapar(row.grado)}</td>
+            <td>${escapar(row.curso)}</td>
+            <td>${escapar(row.ciclo_escolar)}</td>
+            <td>${formato(row.primer_bimestre)}</td>
+            <td>${formato(row.segundo_bimestre)}</td>
+            <td>${formato(row.tercer_bimestre)}</td>
+            <td>${formato(row.cuarto_bimestre)}</td>
+            <td><strong>${formato(row.promedio_final)}</strong></td>
+            <td class="${row.estado === "Aprobado" ? "aprobado" : "reprobado"}">
+              ${escapar(row.estado)}
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        mostrarMensaje("mensajeVer", "Punteos cargados correctamente.", "success");
+
+      } catch (error) {
+        mostrarMensaje("mensajeVer", error.message, "error");
+      }
+    }
+
+    async function insertarNota() {
+      const datos = obtenerDatosNota("ins");
+
+      if (!validarNota(datos, "mensajeInsertar")) return;
+
+      try {
+        const respuesta = await fetch(`${API_URL}/docente/notas`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(datos)
+        });
+
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "Error al insertar punteo.");
+        }
+
+        mostrarMensaje("mensajeInsertar", data.mensaje, "success");
+        limpiarFormularioNota("ins");
+        await cargarPunteosDocente();
+
+      } catch (error) {
+        mostrarMensaje("mensajeInsertar", error.message, "error");
+      }
+    }
+
+    async function actualizarNota() {
+      const datos = obtenerDatosNota("upd");
+
+      if (!validarNota(datos, "mensajeActualizar")) return;
+
+      try {
+        const respuesta = await fetch(`${API_URL}/docente/notas`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(datos)
+        });
+
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "Error al actualizar punteo.");
+        }
+
+        mostrarMensaje("mensajeActualizar", data.mensaje, "success");
+        await cargarPunteosDocente();
+
+      } catch (error) {
+        mostrarMensaje("mensajeActualizar", error.message, "error");
+      }
+    }
+
+    async function eliminarNota() {
+      const codigo = document.getElementById("delCodigo").value.trim();
+      const carrera = document.getElementById("delCarrera").value;
+      const grado = document.getElementById("delGrado").value;
+      const curso = document.getElementById("delCurso").value;
+      const bimestre = document.getElementById("delBimestre").value;
+      const ciclo = document.getElementById("delCiclo").value;
+
+      if (!codigo || !carrera || !grado || !curso || !bimestre || !ciclo) {
+        mostrarMensaje("mensajeEliminar", "Debe completar todos los campos para eliminar.", "error");
+        return;
+      }
+
+      const confirmar = confirm("¿Está seguro que desea eliminar este punteo?");
+      if (!confirmar) return;
+
+      const params = new URLSearchParams({
+        codigo_carnet: codigo,
+        carrera: carrera,
+        grado: grado,
+        curso: curso,
+        bimestre: bimestre,
+        ciclo_escolar: ciclo
+      });
+
+      try {
+        const respuesta = await fetch(`${API_URL}/docente/notas?${params.toString()}`, {
+          method: "DELETE"
+        });
+
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "Error al eliminar punteo.");
+        }
+
+        mostrarMensaje("mensajeEliminar", data.mensaje, "success");
+        await cargarPunteosDocente();
+
+      } catch (error) {
+        mostrarMensaje("mensajeEliminar", error.message, "error");
+      }
+    }
+
+    async function importarExcel() {
+      const carrera = document.getElementById("impCarrera").value;
+      const grado = document.getElementById("impGrado").value;
+      const curso = document.getElementById("impCurso").value;
+      const bimestre = document.getElementById("impBimestre").value;
+      const ciclo = document.getElementById("impCiclo").value;
+      const archivo = document.getElementById("impArchivo").files[0];
+
+      if (!carrera || !grado || !curso || !bimestre || !ciclo || !archivo) {
+        mostrarMensaje(
+          "mensajeImportar",
+          "Debe seleccionar carrera, grado, curso, bimestre, ciclo y archivo Excel.",
+          "error"
+        );
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("archivo", archivo);
+      formData.append("carrera", carrera);
+      formData.append("grado", grado);
+      formData.append("curso", curso);
+      formData.append("bimestre", bimestre);
+      formData.append("ciclo_escolar", ciclo);
+
+      mostrarMensaje("mensajeImportar", "Importando archivo Excel...", "info");
+
+      try {
+        const respuesta = await fetch(`${API_URL}/docente/importar-excel`, {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "Error al importar Excel.");
+        }
+
+        let mensaje = `Importación finalizada. Registros procesados: ${data.procesados}.`;
+
+        if (data.errores && data.errores.length > 0) {
+          mensaje += ` Errores encontrados: ${data.errores.length}. Revise la consola del navegador.`;
+          console.log("Errores de importación:", data.errores);
+        }
+
+        mostrarMensaje("mensajeImportar", mensaje, "success");
+
+        document.getElementById("impArchivo").value = "";
+
+        await cargarPunteosDocente();
+
+      } catch (error) {
+        mostrarMensaje("mensajeImportar", error.message, "error");
+      }
+    }
+
+    function obtenerDatosNota(prefix) {
+      return {
+        codigo_carnet: document.getElementById(`${prefix}Codigo`).value.trim(),
+        carrera: document.getElementById(`${prefix}Carrera`).value,
+        grado: document.getElementById(`${prefix}Grado`).value,
+        curso: document.getElementById(`${prefix}Curso`).value,
+        bimestre: document.getElementById(`${prefix}Bimestre`).value,
+        ciclo_escolar: Number(document.getElementById(`${prefix}Ciclo`).value),
+        actitudinal: Number(document.getElementById(`${prefix}Actitudinal`).value),
+        zona: Number(document.getElementById(`${prefix}Zona`).value),
+        examen: Number(document.getElementById(`${prefix}Examen`).value),
+        observacion: document.getElementById(`${prefix}Observacion`).value.trim()
+      };
+    }
+
+    function validarNota(datos, mensajeId) {
+      if (
+        !datos.codigo_carnet ||
+        !datos.carrera ||
+        !datos.grado ||
+        !datos.curso ||
+        !datos.bimestre ||
+        !datos.ciclo_escolar
+      ) {
+        mostrarMensaje(mensajeId, "Debe completar código, carrera, grado, curso, bimestre y ciclo.", "error");
+        return false;
+      }
+
+      if (
+        isNaN(datos.actitudinal) ||
+        isNaN(datos.zona) ||
+        isNaN(datos.examen)
+      ) {
+        mostrarMensaje(mensajeId, "Debe ingresar actitudinal, zona y examen.", "error");
+        return false;
+      }
+
+      if (datos.actitudinal < 0 || datos.zona < 0 || datos.examen < 0) {
+        mostrarMensaje(mensajeId, "Los punteos no pueden ser negativos.", "error");
+        return false;
+      }
+
+      const total = datos.actitudinal + datos.zona + datos.examen;
+
+      if (total > 100) {
+        mostrarMensaje(mensajeId, "La suma de actitudinal, zona y examen no puede pasar de 100.", "error");
+        return false;
+      }
+
+      return true;
+    }
+
+    function limpiarFormularioNota(prefix) {
+      document.getElementById(`${prefix}Codigo`).value = "";
+      document.getElementById(`${prefix}Actitudinal`).value = "";
+      document.getElementById(`${prefix}Zona`).value = "";
+      document.getElementById(`${prefix}Examen`).value = "";
+      document.getElementById(`${prefix}Observacion`).value = "";
+    }
+
+    async function cargarDatosEstudiante(codigoCarnet) {
+      mostrarMensaje("mensajeEstudiante", "Cargando punteos...", "info");
+
+      try {
+        const respuesta = await fetch(`${API_URL}/estudiantes/${encodeURIComponent(codigoCarnet)}`);
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "No se encontraron punteos del estudiante.");
+        }
+
+        document.getElementById("estCodigo").textContent = data.codigo_carnet;
+        document.getElementById("estNombre").textContent = `${data.apellidos}, ${data.nombres}`;
+        document.getElementById("estCarrera").textContent = data.carrera;
+        document.getElementById("estGrado").textContent = data.grado;
+        document.getElementById("estCiclo").textContent = data.ciclo_escolar;
+
+        const tbody = document.getElementById("tablaEstudiante");
+        tbody.innerHTML = "";
+
+        data.cursos.forEach(curso => {
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td>${escapar(curso.curso)}</td>
+            <td>${formato(curso.primer_bimestre)}</td>
+            <td>${formato(curso.segundo_bimestre)}</td>
+            <td>${formato(curso.tercer_bimestre)}</td>
+            <td>${formato(curso.cuarto_bimestre)}</td>
+            <td><strong>${formato(curso.promedio_final)}</strong></td>
+            <td class="${curso.estado === "Aprobado" ? "aprobado" : "reprobado"}">
+              ${escapar(curso.estado)}
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        mostrarMensaje("mensajeEstudiante", "Punteos cargados correctamente.", "success");
+
+      } catch (error) {
+        mostrarMensaje("mensajeEstudiante", error.message, "error");
+      }
+    }
+
+    function mostrarMensaje(id, texto, tipo) {
+      const div = document.getElementById(id);
+
+      if (!texto) {
+        div.style.display = "none";
+        div.textContent = "";
+        div.className = "message";
+        return;
+      }
+
+      div.textContent = texto;
+      div.className = `message ${tipo}`;
+      div.style.display = "block";
+    }
+
+    function formato(valor) {
+      if (valor === null || valor === undefined || valor === "") return "0";
+      const numero = Number(valor);
+      if (isNaN(numero)) return valor;
+      return numero.toFixed(2);
+    }
+
+    function escapar(valor) {
+      if (valor === null || valor === undefined) return "";
+
+      return String(valor)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+
+</body>
+</html>
