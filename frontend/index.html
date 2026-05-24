@@ -441,6 +441,36 @@
   <script>
     const API_URL = "https://sistemapunteosname-sistema-punteos.onrender.com";
 
+    const SESION_KEY = "sistema_punteos_usuario";
+    async function cargarPanelUsuario(data) {
+  usuarioActual = data;
+
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("appView").classList.remove("hidden");
+
+  if (data.rol === "docente") {
+    document.getElementById("usuarioActual").textContent =
+      `Docente: ${data.nombre_completo} | Código: ${data.codigo}`;
+
+    document.getElementById("panelDocente").classList.remove("hidden");
+    document.getElementById("panelEstudiante").classList.add("hidden");
+
+    await cargarCatalogos();
+    await cargarPunteosDocente();
+
+  } else {
+    const nombreCompleto = `${data.nombres} ${data.apellidos}`;
+
+    document.getElementById("usuarioActual").textContent =
+      `Estudiante: ${nombreCompleto} | Código: ${data.codigo}`;
+
+    document.getElementById("panelDocente").classList.add("hidden");
+    document.getElementById("panelEstudiante").classList.remove("hidden");
+
+    await cargarDatosEstudiante(data.codigo);
+  }
+}
+
     let usuarioActual = null;
     let catalogosCargados = false;
 
@@ -475,32 +505,9 @@
           throw new Error(data.detail || "No se pudo iniciar sesión.");
         }
 
-        usuarioActual = data;
+        localStorage.setItem(SESION_KEY, JSON.stringify(data));
 
-        document.getElementById("loginView").classList.add("hidden");
-        document.getElementById("appView").classList.remove("hidden");
-
-        if (data.rol === "docente") {
-          document.getElementById("usuarioActual").textContent =
-            `Docente: ${data.nombre_completo} | Código: ${data.codigo}`;
-
-          document.getElementById("panelDocente").classList.remove("hidden");
-          document.getElementById("panelEstudiante").classList.add("hidden");
-
-          await cargarCatalogos();
-          await cargarPunteosDocente();
-
-        } else {
-          const nombreCompleto = `${data.nombres} ${data.apellidos}`;
-
-          document.getElementById("usuarioActual").textContent =
-            `Estudiante: ${nombreCompleto} | Código: ${data.codigo}`;
-
-          document.getElementById("panelDocente").classList.add("hidden");
-          document.getElementById("panelEstudiante").classList.remove("hidden");
-
-          await cargarDatosEstudiante(data.codigo);
-        }
+        await cargarPanelUsuario(data);
 
       } catch (error) {
         mostrarMensaje("mensajeLogin", error.message, "error");
@@ -508,13 +515,21 @@
     }
 
     function cerrarSesion() {
+      localStorage.removeItem(SESION_KEY);
+
       usuarioActual = null;
+      catalogosCargados = false;
+
       document.getElementById("appView").classList.add("hidden");
       document.getElementById("loginView").classList.remove("hidden");
+
+      document.getElementById("panelDocente").classList.add("hidden");
+      document.getElementById("panelEstudiante").classList.add("hidden");
+
       document.getElementById("codigoLogin").value = "";
       document.getElementById("nombreLogin").value = "";
+
       mostrarMensaje("mensajeLogin", "", "");
-      location.reload();
     }
 
     async function cargarCatalogos() {
@@ -972,6 +987,23 @@
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
     }
+
+    async function restaurarSesion() {
+      const sesionGuardada = localStorage.getItem(SESION_KEY);
+
+      if (!sesionGuardada) {
+        return;
+      }
+
+      try {
+        const data = JSON.parse(sesionGuardada);
+        await cargarPanelUsuario(data);
+      } catch (error) {
+        localStorage.removeItem(SESION_KEY);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", restaurarSesion);
   </script>
 
 </body>
