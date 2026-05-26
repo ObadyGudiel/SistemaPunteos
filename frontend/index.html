@@ -113,6 +113,10 @@
             <button id="btnImportar" onclick="mostrarSeccionDocente('importar')">
               Importar documento de excel
             </button>
+
+            <button id="btnImportarAlumnos" onclick="mostrarSeccionDocente('importarAlumnos')">
+              Importar alumnos Excel
+            </button>
           </div>
         </div>
 
@@ -376,6 +380,29 @@
           <button class="btn-success" onclick="importarExcel()">Importar Excel</button>
           <div id="mensajeImportar" class="message"></div>
         </div>
+
+        <!-- IMPORTAR ALUMNOS EXCEL -->
+        <div id="seccionImportarAlumnos" class="card docente-section hidden">
+          <h2>Importar alumnos desde Excel</h2>
+
+          <p>
+            El archivo Excel debe tener estas columnas:
+            <strong>codigo_carnet, nombres, apellidos, carrera, grado, ciclo, curso</strong>.
+          </p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Archivo Excel de alumnos</label>
+              <input id="impAlumnosArchivo" type="file" accept=".xlsx" />
+            </div>
+          </div>
+
+          <button class="btn-success" onclick="importarAlumnosExcel()">
+            Importar alumnos
+          </button>
+
+          <div id="mensajeImportarAlumnos" class="message"></div>
+        </div>
       </div>
 
       <!-- PANEL ESTUDIANTE -->
@@ -625,6 +652,11 @@
         document.getElementById("seccionImportar").classList.remove("hidden");
         document.getElementById("btnImportar").classList.add("active");
       }
+
+      if (seccion === "importarAlumnos") {
+        document.getElementById("seccionImportarAlumnos").classList.remove("hidden");
+        document.getElementById("btnImportarAlumnos").classList.add("active");
+      }
     }
 
     async function cargarPunteosDocente() {
@@ -847,6 +879,53 @@
 
       } catch (error) {
         mostrarMensaje("mensajeImportar", error.message, "error");
+      }
+    }
+
+    async function importarAlumnosExcel() {
+      const archivo = document.getElementById("impAlumnosArchivo").files[0];
+
+      if (!archivo) {
+        mostrarMensaje(
+          "mensajeImportarAlumnos",
+          "Debe seleccionar un archivo Excel.",
+          "error"
+        );
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("archivo", archivo);
+
+      mostrarMensaje("mensajeImportarAlumnos", "Importando alumnos...", "info");
+
+      try {
+        const respuesta = await fetch(`${API_URL}/docente/importar-alumnos-excel`, {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.detail || "Error al importar alumnos.");
+        }
+
+        let mensaje = `Importación finalizada. Alumnos procesados: ${data.procesados}.`;
+
+        if (data.errores && data.errores.length > 0) {
+          mensaje += ` Errores encontrados: ${data.errores.length}. Revise la consola del navegador.`;
+          console.log("Errores al importar alumnos:", data.errores);
+        }
+
+        mostrarMensaje("mensajeImportarAlumnos", mensaje, "success");
+
+        document.getElementById("impAlumnosArchivo").value = "";
+
+        await cargarPunteosDocente();
+
+      } catch (error) {
+        mostrarMensaje("mensajeImportarAlumnos", error.message, "error");
       }
     }
 

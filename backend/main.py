@@ -895,6 +895,268 @@ async def importar_excel(
         cerrar_conexion(cursor, conn)
 
 
+
+# =========================
+# DOCENTE: IMPORTAR ALUMNOS DESDE EXCEL
+# =========================
+
+@app.post("/docente/importar-alumnos-excel")
+async def importar_alumnos_excel(
+    archivo: UploadFile = File(...)
+):
+    conn = None
+    cursor = None
+
+    try:
+        if not archivo.filename.lower().endswith(".xlsx"):
+            raise HTTPException(
+                status_code=400,
+                detail="Solo se permiten archivos Excel con extensión .xlsx"
+            )
+
+        contenido = await archivo.read()
+        libro = load_workbook(filename=BytesIO(contenido), data_only=True)
+        hoja = libro.active
+
+        encabezados = {}
+
+        for columna in range(1, hoja.max_column + 1):
+            valor = hoja.cell(row=1, column=columna).value
+            encabezados[normalizar_encabezado(valor)] = columna
+
+        col_codigo = (
+            encabezados.get("codigo_carnet")
+            or encabezados.get("codigo")
+            or encabezados.get("carnet")
+        )
+
+        col_nombres = encabezados.get("nombres")
+        col_apellidos = encabezados.get("apellidos")
+        col_carrera = encabezados.get("carrera")
+        col_grado = encabezados.get("grado")
+        col_ciclo = (
+            encabezados.get("ciclo")
+            or encabezados.get("ciclo_escolar")
+        )
+        col_curso = encabezados.get("curso")
+
+        if (
+            not col_codigo
+            or not col_nombres
+            or not col_apellidos
+            or not col_carrera
+            or not col_grado
+            or not col_ciclo
+            or not col_curso
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="El Excel debe tener las columnas: codigo_carnet, nombres, apellidos, carrera, grado, ciclo y curso"
+            )
+
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        procesados = 0
+        errores = []
+
+        for fila in range(2, hoja.max_row + 1):
+            codigo_carnet = obtener_valor_fila(hoja, fila, col_codigo)
+
+            if codigo_carnet is None or str(codigo_carnet).strip() == "":
+                continue
+
+            try:
+                codigo_carnet = str(codigo_carnet).strip()
+                nombres_valor = obtener_valor_fila(hoja, fila, col_nombres)
+                apellidos_valor = obtener_valor_fila(hoja, fila, col_apellidos)
+                carrera_valor = obtener_valor_fila(hoja, fila, col_carrera)
+                grado_valor = obtener_valor_fila(hoja, fila, col_grado)
+                ciclo_valor = obtener_valor_fila(hoja, fila, col_ciclo)
+                curso_valor = obtener_valor_fila(hoja, fila, col_curso)
+
+                nombres = "" if nombres_valor is None else str(nombres_valor).strip()
+                apellidos = "" if apellidos_valor is None else str(apellidos_valor).strip()
+                carrera = "" if carrera_valor is None else str(carrera_valor).strip()
+                grado = "" if grado_valor is None else str(grado_valor).strip()
+                curso = "" if curso_valor is None else str(curso_valor).strip()
+
+                if ciclo_valor is None or str(ciclo_valor).strip() == "":
+                    errores.append({
+                        "fila": fila,
+                        "codigo_carnet": codigo_carnet,
+                        "error": "El ciclo escolar está vacío"
+                    })
+                    continue
+
+                ciclo_escolar = int(float(ciclo_valor))
+
+                if not nombres or not apellidos or not carrera or not grado or not curso:
+                    errores.append({
+                        "fila": fila,
+                        "codigo_carnet": codigo_carnet,
+                        "error": "Hay campos vacíos en nombres, apellidos, carrera, grado o curso"
+                    })
+                    continue
+
+                if not any(c.isalpha() for c in codigo_carnet) or not any(c.isdigit() for c in codigo_carnet):
+                    errores.append({
+                        "fila": fila,
+                        "codigo_carnet": codigo_carnet,
+                        "error": "El código de carnet debe contener letras y números"
+                    })
+                    continue
+
+                cursor.execute("""
+                    SELECT 
+                        ca.id_carrera,
+                        gr.id_grado,
+                        ce.id_ciclo,
+                        cu.id_curso
+                    FROM carreras ca
+                    INNER JOIN grados gr ON gr.nombre = %s
+                    INNER JOIN ciclos_escolares ce ON ce.anio = %s
+                    INNER JOIN cursos cu ON cu.nombre = %s
+                    WHERE ca.nombre = %s;
+                """, (
+                    grado,
+                    ciclo_escolar,
+                    curso,
+                    carrera
+                ))
+
+                catalogo = cursor.fetchone()
+
+                if not catalogo:
+                    errores.append({
+                        "fila": fila,
+                        "codigo_carnet": codigo_carnet,
+                        "error": "No se encontró carrera, grado, ciclo o curso en la base de datos"
+                    })
+                    continue
+
+                cursor.execute("""
+                    INSERT INTO alumnos (
+                        codigo_carnet,
+                        nombres,
+                        apellidos,
+                        estado
+                    )
+                    VALUES (%s, %s, %s, TRUE)
+                    ON CONFLICT (codigo_carnet)
+                    DO UPDATE SET
+                        nombres = EXCLUDED.nombres,
+                        apellidos = EXCLUDED.apellidos,
+                        estado = TRUE
+                    RETURNING id_alumno;
+                """, (
+                    codigo_carnet,
+                    nombres,
+                    apellidos
+                ))
+
+                alumno = cursor.fetchone()
+
+                cursor.execute("""
+                    INSERT INTO asignaciones (
+                        id_alumno,
+                        id_carrera,
+                        id_grado,
+                        id_ciclo
+                    )
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (id_alumno, id_ciclo)
+                    DO UPDATE SET
+                        id_carrera = EXCLUDED.id_carrera,
+                        id_grado = EXCLUDED.id_grado
+                    RETURNING id_asignacion;
+                """, (
+                    alumno["id_alumno"],
+                    catalogo["id_carrera"],
+                    catalogo["id_grado"],
+                    catalogo["id_ciclo"]
+                ))
+
+                asignacion = cursor.fetchone()
+
+                cursor.execute("""
+                    INSERT INTO cursos_por_grado (
+                        id_carrera,
+                        id_grado,
+                        id_curso
+                    )
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (id_carrera, id_grado, id_curso)
+                    DO NOTHING;
+                """, (
+                    catalogo["id_carrera"],
+                    catalogo["id_grado"],
+                    catalogo["id_curso"]
+                ))
+
+                # Asigna el curso en los 4 bimestres con nota 0.
+                # Si ya existen punteos, NO los modifica.
+                cursor.execute("""
+                    INSERT INTO notas (
+                        id_asignacion,
+                        id_curso,
+                        id_bimestre,
+                        actitudinal,
+                        zona,
+                        examen,
+                        observacion
+                    )
+                    SELECT 
+                        %s,
+                        %s,
+                        b.id_bimestre,
+                        0,
+                        0,
+                        0,
+                        'Curso asignado desde Excel'
+                    FROM bimestres b
+                    ON CONFLICT (id_asignacion, id_curso, id_bimestre)
+                    DO NOTHING;
+                """, (
+                    asignacion["id_asignacion"],
+                    catalogo["id_curso"]
+                ))
+
+                procesados += 1
+
+            except Exception as e:
+                errores.append({
+                    "fila": fila,
+                    "codigo_carnet": str(codigo_carnet),
+                    "error": str(e)
+                })
+
+        conn.commit()
+
+        return {
+            "mensaje": "Importación de alumnos finalizada",
+            "procesados": procesados,
+            "errores": errores
+        }
+
+    except HTTPException:
+        if conn:
+            conn.rollback()
+        raise
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al importar alumnos: {str(e)}"
+        )
+
+    finally:
+        cerrar_conexion(cursor, conn)
+
+
 # =========================
 # CATÁLOGOS
 # =========================
