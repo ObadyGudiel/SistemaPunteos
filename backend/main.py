@@ -337,6 +337,14 @@ class DocenteCursoRequest(BaseModel):
     ciclo_escolar: int = 2026
 
 
+class AsignarCursoEstudiantesRequest(BaseModel):
+    codigo_docente: str
+    carrera: str
+    grado: str
+    curso: str
+    ciclo_escolar: int = 2026
+
+
 @app.get("/")
 def inicio():
     return {"mensaje": "API del Sistema de Punteos funcionando correctamente"}
@@ -724,6 +732,176 @@ async def importar_excel(
         if conn:
             conn.rollback()
         raise HTTPException(status_code=500, detail=f"Error al importar Excel: {str(e)}")
+    finally:
+        cerrar_conexion(cursor, conn)
+
+
+@app.post("/docente/asignar-curso-estudiantes")
+def asignar_curso_estudiantes_docente(data: AsignarCursoEstudiantesRequest):
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        validar_curso_docente(
+            cursor,
+            data.codigo_docente,
+            data.carrera,
+            data.grado,
+            data.curso,
+            data.ciclo_escolar,
+        )
+        catalogo = obtener_ids_catalogo(
+            cursor,
+            data.carrera,
+            data.grado,
+            data.curso,
+            data.ciclo_escolar,
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO cursos_por_grado (id_carrera, id_grado, id_curso)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (id_carrera, id_grado, id_curso) DO NOTHING;
+            """,
+            (catalogo["id_carrera"], catalogo["id_grado"], catalogo["id_curso"]),
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO notas (
+                id_asignacion,
+                id_curso,
+                id_bimestre,
+                actitudinal,
+                zona,
+                examen,
+                observacion
+            )
+            SELECT
+                asi.id_asignacion,
+                %s,
+                b.id_bimestre,
+                0,
+                0,
+                0,
+                'Curso asignado por docente'
+            FROM asignaciones asi
+            CROSS JOIN bimestres b
+            INNER JOIN alumnos a ON a.id_alumno = asi.id_alumno
+            WHERE asi.id_carrera = %s
+              AND asi.id_grado = %s
+              AND asi.id_ciclo = %s
+              AND a.estado = TRUE
+            ON CONFLICT (id_asignacion, id_curso, id_bimestre) DO NOTHING
+            RETURNING id_nota;
+            """,
+            (
+                catalogo["id_curso"],
+                catalogo["id_carrera"],
+                catalogo["id_grado"],
+                catalogo["id_ciclo"],
+            ),
+        )
+        notas_creadas = cursor.fetchall()
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total_estudiantes
+            FROM asignaciones asi
+            INNER JOIN alumnos a ON a.id_alumno = asi.id_alumno
+            WHERE asi.id_carrera = %s
+              AND asi.id_grado = %s
+              AND asi.id_ciclo = %s
+              AND a.estado = TRUE;
+            """,
+            (
+                catalogo["id_carrera"],
+                catalogo["id_grado"],
+                catalogo["id_ciclo"],
+            ),
+        )
+        total = cursor.fetchone()
+        conn.commit()
+
+        return {
+            "mensaje": "Curso asignado a estudiantes correctamente",
+            "estudiantes": total["total_estudiantes"],
+            "notas_creadas": len(notas_creadas),
+        }
+
+    except HTTPException:
+        if conn:
+            conn.rollback()
+        raise
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
+    finally:
+        cerrar_conexion(cursor, conn)
+
+
+@app.delete("/docente/asignar-curso-estudiantes")
+def quitar_curso_estudiantes_docente(data: AsignarCursoEstudiantesRequest):
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        validar_curso_docente(
+            cursor,
+            data.codigo_docente,
+            data.carrera,
+            data.grado,
+            data.curso,
+            data.ciclo_escolar,
+        )
+        catalogo = obtener_ids_catalogo(
+            cursor,
+            data.carrera,
+            data.grado,
+            data.curso,
+            data.ciclo_escolar,
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM notas n
+            USING asignaciones asi, alumnos a
+            WHERE n.id_asignacion = asi.id_asignacion
+              AND asi.id_alumno = a.id_alumno
+              AND n.id_curso = %s
+              AND asi.id_carrera = %s
+              AND asi.id_grado = %s
+              AND asi.id_ciclo = %s
+              AND a.estado = TRUE
+            RETURNING n.id_nota;
+            """,
+            (
+                catalogo["id_curso"],
+                catalogo["id_carrera"],
+                catalogo["id_grado"],
+                catalogo["id_ciclo"],
+            ),
+        )
+        notas_eliminadas = cursor.fetchall()
+        conn.commit()
+
+        return {
+            "mensaje": "Curso quitado de estudiantes correctamente",
+            "notas_eliminadas": len(notas_eliminadas),
+        }
+
+    except HTTPException:
+        if conn:
+            conn.rollback()
+        raise
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
     finally:
         cerrar_conexion(cursor, conn)
 

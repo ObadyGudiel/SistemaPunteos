@@ -191,6 +191,7 @@
             <button id="docBtnVer" class="active" onclick="mostrarSeccionDocente('ver')">Mis cursos y punteos</button>
             <button id="docBtnInsertar" onclick="mostrarSeccionDocente('insertar')">Registrar punteo</button>
             <button id="docBtnImportar" onclick="mostrarSeccionDocente('importar')">Subir Excel</button>
+            <button id="docBtnAsignar" onclick="mostrarSeccionDocente('asignar')">Asignar curso</button>
           </div>
         </div>
 
@@ -249,6 +250,20 @@
           </div>
           <button class="btn-success" onclick="importarExcel()">Importar Excel</button>
           <div id="mensajeImportar" class="message"></div>
+        </div>
+
+        <div id="docAsignar" class="card docente-section hidden">
+          <h2>Asignar curso a estudiantes</h2>
+          <p>Seleccione la carrera, grado, curso y ciclo. Solo podrá asignar cursos que dirección le haya asignado a usted.</p>
+          <div class="form-grid">
+            <div class="form-group"><label>Carrera</label><select id="docAsigCarrera"></select></div>
+            <div class="form-group"><label>Grado</label><select id="docAsigGrado"></select></div>
+            <div class="form-group"><label>Curso</label><select id="docAsigCurso"></select></div>
+            <div class="form-group"><label>Ciclo escolar</label><select id="docAsigCiclo"></select></div>
+          </div>
+          <button class="btn-success" onclick="asignarCursoAEstudiantes()">Asignar a estudiantes</button>
+          <button class="btn-danger" onclick="quitarCursoAEstudiantes()">Quitar de estudiantes</button>
+          <div id="mensajeDocAsignar" class="message"></div>
         </div>
       </div>
 
@@ -367,10 +382,10 @@
       llenarSelect("dirFiltroCiclo", catalogos.ciclos, "anio", "Todos los ciclos");
       llenarSelectDocentes("dirFiltroDocente", catalogos.docentes, "Todos los docentes");
 
-      ["filtroCarrera", "insCarrera", "impCarrera", "estNewCarrera", "cursoCarrera", "asigCarrera"].forEach(id => llenarSelect(id, catalogos.carreras, "nombre", id === "filtroCarrera" ? "Todas las carreras" : "Seleccione carrera"));
-      ["filtroGrado", "insGrado", "impGrado", "estNewGrado", "cursoGrado", "asigGrado"].forEach(id => llenarSelect(id, catalogos.grados, "nombre", id === "filtroGrado" ? "Todos los grados" : "Seleccione grado"));
-      ["filtroCurso", "insCurso", "impCurso", "estNewCurso", "asigCurso"].forEach(id => llenarSelect(id, catalogos.cursos, "nombre", id === "filtroCurso" ? "Todos los cursos" : "Seleccione curso"));
-      ["filtroCiclo", "insCiclo", "impCiclo", "estNewCiclo", "asigCiclo"].forEach(id => llenarSelect(id, catalogos.ciclos, "anio", id === "filtroCiclo" ? "Todos los ciclos" : "Seleccione ciclo"));
+      ["filtroCarrera", "insCarrera", "impCarrera", "docAsigCarrera", "estNewCarrera", "cursoCarrera", "asigCarrera"].forEach(id => llenarSelect(id, catalogos.carreras, "nombre", id === "filtroCarrera" ? "Todas las carreras" : "Seleccione carrera"));
+      ["filtroGrado", "insGrado", "impGrado", "docAsigGrado", "estNewGrado", "cursoGrado", "asigGrado"].forEach(id => llenarSelect(id, catalogos.grados, "nombre", id === "filtroGrado" ? "Todos los grados" : "Seleccione grado"));
+      ["filtroCurso", "insCurso", "impCurso", "docAsigCurso", "estNewCurso", "asigCurso"].forEach(id => llenarSelect(id, catalogos.cursos, "nombre", id === "filtroCurso" ? "Todos los cursos" : "Seleccione curso"));
+      ["filtroCiclo", "insCiclo", "impCiclo", "docAsigCiclo", "estNewCiclo", "asigCiclo"].forEach(id => llenarSelect(id, catalogos.ciclos, "anio", id === "filtroCiclo" ? "Todos los ciclos" : "Seleccione ciclo"));
       llenarSelectDocentes("asigDocente", catalogos.docentes, "Seleccione docente");
       catalogosCargados = true;
     }
@@ -715,6 +730,66 @@
         await cargarPunteosDocente();
       } catch (error) {
         mostrarMensaje("mensajeImportar", error.message, "error");
+      }
+    }
+
+    async function asignarCursoAEstudiantes() {
+      const datos = {
+        codigo_docente: usuarioActual.codigo,
+        carrera: document.getElementById("docAsigCarrera").value,
+        grado: document.getElementById("docAsigGrado").value,
+        curso: document.getElementById("docAsigCurso").value,
+        ciclo_escolar: Number(document.getElementById("docAsigCiclo").value)
+      };
+      if (!datos.carrera || !datos.grado || !datos.curso || !datos.ciclo_escolar) {
+        mostrarMensaje("mensajeDocAsignar", "Debe seleccionar carrera, grado, curso y ciclo.", "error");
+        return;
+      }
+      try {
+        const data = await api("/docente/asignar-curso-estudiantes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos)
+        });
+        mostrarMensaje(
+          "mensajeDocAsignar",
+          `${data.mensaje}. Estudiantes: ${data.estudiantes}. Notas creadas: ${data.notas_creadas}.`,
+          "success"
+        );
+        await cargarPunteosDocente();
+      } catch (error) {
+        mostrarMensaje("mensajeDocAsignar", error.message, "error");
+      }
+    }
+
+    async function quitarCursoAEstudiantes() {
+      const datos = {
+        codigo_docente: usuarioActual.codigo,
+        carrera: document.getElementById("docAsigCarrera").value,
+        grado: document.getElementById("docAsigGrado").value,
+        curso: document.getElementById("docAsigCurso").value,
+        ciclo_escolar: Number(document.getElementById("docAsigCiclo").value)
+      };
+      if (!datos.carrera || !datos.grado || !datos.curso || !datos.ciclo_escolar) {
+        mostrarMensaje("mensajeDocAsignar", "Debe seleccionar carrera, grado, curso y ciclo.", "error");
+        return;
+      }
+      const confirmar = confirm("¿Desea quitar este curso de los estudiantes seleccionados? Se eliminarán los punteos registrados de ese curso para ese grupo.");
+      if (!confirmar) return;
+      try {
+        const data = await api("/docente/asignar-curso-estudiantes", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos)
+        });
+        mostrarMensaje(
+          "mensajeDocAsignar",
+          `${data.mensaje}. Notas eliminadas: ${data.notas_eliminadas}.`,
+          "success"
+        );
+        await cargarPunteosDocente();
+      } catch (error) {
+        mostrarMensaje("mensajeDocAsignar", error.message, "error");
       }
     }
 
