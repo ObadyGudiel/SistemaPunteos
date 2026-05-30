@@ -456,44 +456,87 @@
     }
 
     async function cargarPunteos(path, tbodyId, mensajeId, filtros, incluirDocente) {
-      mostrarMensaje(mensajeId, "Cargando punteos...", "info");
-      const params = new URLSearchParams();
-      Object.entries(filtros).forEach(([key, id]) => {
-        const valor = document.getElementById(id)?.value;
-        if (valor) params.append(key, valor);
-      });
-      if (path.includes("/docente/")) params.append("codigo_docente", usuarioActual.codigo);
-      try {
-        const data = await api(`${path}?${params.toString()}`);
-        const tbody = document.getElementById(tbodyId);
-        tbody.innerHTML = "";
-        if (data.length === 0) {
-          mostrarMensaje(mensajeId, "No hay registros para mostrar.", "info");
-          return;
-        }
-        data.forEach(row => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${escapar(row.codigo_carnet)}</td>
-            <td>${escapar(row.apellidos)}, ${escapar(row.nombres)}</td>
-            <td>${escapar(row.carrera)}</td>
-            <td>${escapar(row.grado)}</td>
-            <td>${escapar(row.curso)}</td>
-            ${incluirDocente ? `<td>${escapar(row.docente || "Sin asignar")}</td>` : ""}
-            <td>${escapar(row.ciclo_escolar)}</td>
-            <td>${formato(row.primer_bimestre)}</td>
-            <td>${formato(row.segundo_bimestre)}</td>
-            <td>${formato(row.tercer_bimestre)}</td>
-            <td>${formato(row.cuarto_bimestre)}</td>
-            <td><strong>${formato(row.promedio_final)}</strong></td>
-            <td class="${row.estado === "Aprobado" ? "aprobado" : "reprobado"}">${escapar(row.estado)}</td>`;
-          tbody.appendChild(tr);
-        });
-        mostrarMensaje(mensajeId, "Punteos cargados correctamente.", "success");
-      } catch (error) {
-        mostrarMensaje(mensajeId, error.message, "error");
-      }
+  mostrarMensaje(mensajeId, "Cargando punteos...", "info");
+
+  const params = new URLSearchParams();
+
+  Object.entries(filtros).forEach(([key, id]) => {
+    const valor = document.getElementById(id)?.value;
+
+    if (valor) {
+      params.append(key, valor);
     }
+  });
+
+  if (path.includes("/docente/")) {
+    params.append("codigo_docente", usuarioActual.codigo);
+  }
+
+  try {
+    const data = await api(`${path}?${params.toString()}`);
+    const tbody = document.getElementById(tbodyId);
+
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+      mostrarMensaje(mensajeId, "No hay registros para mostrar.", "info");
+      return;
+    }
+
+    // Ordenar primero por curso y después por el nombre del estudiante
+    const datosOrdenados = [...data].sort((a, b) => {
+      const compararCurso = (a.curso || "").localeCompare(
+        b.curso || "",
+        "es",
+        { sensitivity: "base" }
+      );
+
+      if (compararCurso !== 0) return compararCurso;
+
+      const compararApellido = (a.apellidos || "").localeCompare(
+        b.apellidos || "",
+        "es",
+        { sensitivity: "base" }
+      );
+
+      if (compararApellido !== 0) return compararApellido;
+
+      return (a.nombres || "").localeCompare(
+        b.nombres || "",
+        "es",
+        { sensitivity: "base" }
+      );
+    });
+
+    datosOrdenados.forEach(row => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${escapar(row.codigo_carnet)}</td>
+        <td>${escapar(row.apellidos)}, ${escapar(row.nombres)}</td>
+        <td>${escapar(row.carrera)}</td>
+        <td>${escapar(row.grado)}</td>
+        <td>${escapar(row.curso)}</td>
+        ${incluirDocente ? `<td>${escapar(row.docente || "Sin asignar")}</td>` : ""}
+        <td>${escapar(row.ciclo_escolar)}</td>
+        <td>${formato(row.primer_bimestre)}</td>
+        <td>${formato(row.segundo_bimestre)}</td>
+        <td>${formato(row.tercer_bimestre)}</td>
+        <td>${formato(row.cuarto_bimestre)}</td>
+        <td><strong>${formato(row.promedio_final)}</strong></td>
+        <td class="${row.estado === "Aprobado" ? "aprobado" : "reprobado"}">
+          ${escapar(row.estado)}
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+
+    mostrarMensaje(mensajeId, "Punteos cargados correctamente.", "success");
+  } catch (error) {
+    mostrarMensaje(mensajeId, error.message, "error");
+  }
+}
 
     async function cargarDocentes() {
       const data = await api("/director/docentes");
