@@ -839,7 +839,7 @@ def listar_estudiantes():
             LEFT JOIN carreras ca ON ca.id_carrera = asi.id_carrera
             LEFT JOIN grados gr ON gr.id_grado = asi.id_grado
             LEFT JOIN ciclos_escolares ce ON ce.id_ciclo = asi.id_ciclo
-            ORDER BY a.apellidos, a.nombres;
+            ORDER BY ca.nombre, gr.numero, a.apellidos, a.nombres;
             """
         )
         return [limpiar_fila(fila) for fila in cursor.fetchall()]
