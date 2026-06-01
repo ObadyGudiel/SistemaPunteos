@@ -984,12 +984,14 @@
         lineas.push(`0 0 ${ancho} ${alto} re f`);
         lineas.push("0.03 0.11 0.25 rg");
         lineas.push(`0 ${alto - 92} ${ancho} 92 re f`);
+        lineas.push("1 1 1 rg");
         escribirTexto(lineas, "F2", 17, margenX, 748, "Instituto Básico y Diversificado por Cooperativa Aldea San Luis");
         escribirTexto(lineas, "F1", 11, margenX, 728, "Listado de credenciales de estudiantes");
         escribirTexto(lineas, "F1", 9, margenX, 708, `Generado: ${new Date().toLocaleDateString("es-GT")}   Página ${indicePagina + 1} de ${paginas.length}`);
 
         lineas.push("0.10 0.32 0.82 rg");
         lineas.push(`${margenX} 676 520 28 re f`);
+        lineas.push("1 1 1 rg");
         escribirTexto(lineas, "F2", 10, margenX + 12, 686, "Carnet");
         escribirTexto(lineas, "F2", 10, margenX + 120, 686, "Nombre completo");
         escribirTexto(lineas, "F2", 10, margenX + 410, 686, "Contraseña");
@@ -1002,11 +1004,13 @@
             lineas.push("0.93 0.95 0.98 rg");
           }
           lineas.push(`${margenX} ${y - 5} 520 ${altoFila} re f`);
+          lineas.push("0.03 0.08 0.18 rg");
           escribirTexto(lineas, "F1", 9, margenX + 12, y + 2, limitarTexto(row.carnet, 18));
           escribirTexto(lineas, "F1", 9, margenX + 120, y + 2, limitarTexto(row.nombre, 48));
           escribirTexto(lineas, "F1", 9, margenX + 410, y + 2, limitarTexto(row.password, 22));
         });
 
+        lineas.push("0.30 0.36 0.45 rg");
         escribirTexto(lineas, "F1", 8, margenX, 38, "Documento para uso interno de dirección. Resguardar las credenciales de forma segura.");
         lineas.push("Q");
 
