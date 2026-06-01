@@ -846,7 +846,14 @@ code {
   }
 
   .title-rule {
+    width: min(260px, 76%);
+    gap: 12px;
     margin-bottom: 24px;
+  }
+
+  .title-rule i {
+    width: 10px;
+    height: 10px;
   }
 
   .feature-strip {
