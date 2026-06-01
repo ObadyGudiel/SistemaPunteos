@@ -229,6 +229,12 @@ h2 {
   font-weight: 900;
 }
 
+.feature-strip img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
 .feature-strip small {
   color: #e2e8f0;
   line-height: 1.25;
@@ -432,6 +438,15 @@ button:hover {
   width: 76px;
   height: 76px;
   font-size: 18px;
+  overflow: hidden;
+  background: #eef5ff;
+}
+
+.panel-icon img {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  display: block;
 }
 
 .menu {
@@ -547,6 +562,13 @@ tr:hover {
   border-radius: 10px;
   border-left: 4px solid var(--blue);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.info-icon {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  margin-bottom: 10px;
 }
 
 .info-box strong {
