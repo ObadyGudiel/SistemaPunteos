@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sistema de Punteos Académicos</title>
-  <link rel="stylesheet" href="css/styles.css?v=20260601-6" />
+  <link rel="stylesheet" href="css/styles.css?v=20260601-7" />
 </head>
 
 <body>
@@ -12,18 +12,18 @@
     <div class="hero-card card">
       <div class="brand-marks">
         <div class="logo-frame">
-          <img class="school-logo logo-san-luis" src="img/logo-san-luis.png?v=20260601-6" alt="Logo Instituto por Cooperativa San Luis" />
+          <img class="school-logo logo-san-luis" src="img/logo-san-luis.png?v=20260601-7" alt="Logo Instituto por Cooperativa San Luis" />
         </div>
         <span class="brand-divider"></span>
         <div class="logo-frame">
-          <img class="school-logo logo-diversificado" src="img/logo-diversificado.png?v=20260601-6" alt="Logo Instituto Diversificado por Cooperativa San Luis" />
+          <img class="school-logo logo-diversificado" src="img/logo-diversificado.png?v=20260601-7" alt="Logo Instituto Diversificado por Cooperativa San Luis" />
         </div>
       </div>
       <h1>Plataforma Institucional</h1>
       <div class="title-rule"><span></span><i></i><span></span></div>
       <div class="institution-pill">
         <span class="pill-icon">
-          <img src="img/icon-grupo-verde.png?v=20260601-6" alt="Icono de grupo" />
+          <img src="img/icon-grupo-verde.png?v=20260601-7" alt="Icono de grupo" />
         </span>
         <div>
           <strong>Instituto Básico y Diversificado por Cooperativa "San Luis"</strong>
@@ -32,16 +32,16 @@
       </div>
       <p>Gestión de punteos académicos de forma segura, eficiente y accesible.</p>
       <div class="feature-strip">
-        <div><span><img src="img/icon-verificacion.png?v=20260601-6" alt="" /></span><strong>Seguro</strong><small>Tu información está protegida</small></div>
-        <div><span><img src="img/icon-barras-azul.png?v=20260601-6" alt="" /></span><strong>Confiable</strong><small>Datos precisos y actualizados</small></div>
-        <div><span><img src="img/icon-grupo-personas.png?v=20260601-6" alt="" /></span><strong>Accesible</strong><small>Desde cualquier dispositivo</small></div>
-        <div><span><img src="img/icon-graduacion-morado.png?v=20260601-6" alt="" /></span><strong>Educativo</strong><small>Apoya el aprendizaje</small></div>
+        <div><span><img src="img/icon-verificacion.png?v=20260601-7" alt="" /></span><strong>Seguro</strong><small>Tu información está protegida</small></div>
+        <div><span><img src="img/icon-barras-azul.png?v=20260601-7" alt="" /></span><strong>Confiable</strong><small>Datos precisos y actualizados</small></div>
+        <div><span><img src="img/icon-grupo-personas.png?v=20260601-7" alt="" /></span><strong>Accesible</strong><small>Desde cualquier dispositivo</small></div>
+        <div><span><img src="img/icon-graduacion-morado.png?v=20260601-7" alt="" /></span><strong>Educativo</strong><small>Apoya el aprendizaje</small></div>
       </div>
     </div>
 
     <div class="login-card card">
       <div class="login-avatar">
-        <img src="img/icon-usuario-azul.png?v=20260601-6" alt="Icono de usuario" />
+        <img src="img/icon-usuario-azul.png?v=20260601-7" alt="Icono de usuario" />
       </div>
       <h2>Iniciar sesión</h2>
 
@@ -61,7 +61,10 @@
 
       <div class="form-group">
         <label for="passwordLogin">Contraseña</label>
-        <input type="password" id="passwordLogin" placeholder="Ingrese su contraseña" />
+        <div class="password-field">
+          <input type="password" id="passwordLogin" placeholder="Ingrese su contraseña" />
+          <button type="button" class="password-toggle" onclick="alternarPasswordLogin()">Ver</button>
+        </div>
       </div>
 
       <button class="btn-primary btn-full" onclick="iniciarSesion()">Entrar al sistema</button>
@@ -75,10 +78,10 @@
       <div class="school-brand">
         <div class="brand-marks topbar-marks">
           <div class="logo-frame">
-            <img class="school-logo logo-san-luis" src="img/logo-san-luis.png?v=20260601-6" alt="Logo Instituto por Cooperativa San Luis" />
+            <img class="school-logo logo-san-luis" src="img/logo-san-luis.png?v=20260601-7" alt="Logo Instituto por Cooperativa San Luis" />
           </div>
           <div class="logo-frame">
-            <img class="school-logo logo-diversificado" src="img/logo-diversificado.png?v=20260601-6" alt="Logo Instituto Diversificado por Cooperativa San Luis" />
+            <img class="school-logo logo-diversificado" src="img/logo-diversificado.png?v=20260601-7" alt="Logo Instituto Diversificado por Cooperativa San Luis" />
           </div>
         </div>
         <div>
@@ -92,7 +95,7 @@
     <div class="container">
       <div id="panelDirector" class="hidden">
         <div class="card panel-shell">
-          <div class="panel-icon"><img src="img/icon-usuario-barras.png?v=20260601-6" alt="Icono director" /></div>
+          <div class="panel-icon"><img src="img/icon-usuario-barras.png?v=20260601-7" alt="Icono director" /></div>
           <h2>Panel del director</h2>
           <div class="menu">
             <button id="dirBtnPunteos" class="active" onclick="mostrarSeccionDirector('punteos')">Todos los punteos</button>
@@ -135,7 +138,7 @@
           <div class="form-grid">
             <div class="form-group"><label>Código/usuario docente</label><input id="docCodigo" type="text" /></div>
             <div class="form-group"><label>Nombre completo</label><input id="docNombre" type="text" /></div>
-            <div class="form-group"><label>Contraseña opcional</label><input id="docPassword" type="text" placeholder="Automática si se deja vacío" /></div>
+            <div class="form-group"><label>Contraseña opcional</label><input id="dirDocentePassword" type="text" placeholder="Automática si se deja vacío" /></div>
           </div>
           <button class="btn-success" onclick="crearDocente()">Crear o actualizar docente</button>
           <div id="mensajeDocentes" class="message"></div>
@@ -222,7 +225,7 @@
 
       <div id="panelDocente" class="hidden">
         <div class="card panel-shell">
-          <div class="panel-icon"><img src="img/icon-presentacion.png?v=20260601-6" alt="Icono docente" /></div>
+          <div class="panel-icon"><img src="img/icon-presentacion.png?v=20260601-7" alt="Icono docente" /></div>
           <h2>Panel del docente</h2>
           <div class="menu">
             <button id="docBtnVer" class="active" onclick="mostrarSeccionDocente('ver')">Mis cursos y punteos</button>
@@ -318,14 +321,14 @@
 
       <div id="panelEstudiante" class="hidden">
         <div class="card student-hero">
-          <div class="panel-icon"><img src="img/icon-birrete.png?v=20260601-6" alt="Icono estudiante" /></div>
+          <div class="panel-icon"><img src="img/icon-birrete.png?v=20260601-7" alt="Icono estudiante" /></div>
           <h2>Panel del estudiante</h2>
           <div class="student-info">
-            <div class="info-box"><img class="info-icon" src="img/icon-tarjeta.png?v=20260601-6" alt="" /><strong>Código de carnet</strong><span id="estCodigo"></span></div>
-            <div class="info-box"><img class="info-icon" src="img/icon-usuario-azul.png?v=20260601-6" alt="" /><strong>Nombre completo</strong><span id="estNombre"></span></div>
-            <div class="info-box"><img class="info-icon" src="img/icon-libro.png?v=20260601-6" alt="" /><strong>Carrera</strong><span id="estCarrera"></span></div>
-            <div class="info-box"><img class="info-icon" src="img/icon-birrete.png?v=20260601-6" alt="" /><strong>Grado</strong><span id="estGrado"></span></div>
-            <div class="info-box"><img class="info-icon" src="img/icon-calendario-azul.png?v=20260601-6" alt="" /><strong>Ciclo escolar</strong><span id="estCiclo"></span></div>
+            <div class="info-box"><img class="info-icon" src="img/icon-tarjeta.png?v=20260601-7" alt="" /><strong>Código de carnet</strong><span id="estCodigo"></span></div>
+            <div class="info-box"><img class="info-icon" src="img/icon-usuario-azul.png?v=20260601-7" alt="" /><strong>Nombre completo</strong><span id="estNombre"></span></div>
+            <div class="info-box"><img class="info-icon" src="img/icon-libro.png?v=20260601-7" alt="" /><strong>Carrera</strong><span id="estCarrera"></span></div>
+            <div class="info-box"><img class="info-icon" src="img/icon-birrete.png?v=20260601-7" alt="" /><strong>Grado</strong><span id="estGrado"></span></div>
+            <div class="info-box"><img class="info-icon" src="img/icon-calendario-azul.png?v=20260601-7" alt="" /><strong>Ciclo escolar</strong><span id="estCiclo"></span></div>
           </div>
         </div>
         <div class="card">
@@ -497,6 +500,14 @@
       return texto.charAt(0).toUpperCase() + texto.slice(1);
     }
 
+    function alternarPasswordLogin() {
+      const input = document.getElementById("passwordLogin");
+      const boton = document.querySelector(".password-toggle");
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      boton.textContent = visible ? "Ver" : "Ocultar";
+    }
+
     async function cargarPunteosDirector() {
       await cargarPunteos("/director/punteos", "tablaDirectorPunteos", "mensajeDirPunteos", {
         carrera: "dirFiltroCarrera",
@@ -629,7 +640,7 @@
           body: JSON.stringify({
             codigo_docente: document.getElementById("docCodigo").value.trim(),
             nombre_completo: document.getElementById("docNombre").value.trim(),
-            password: document.getElementById("docPassword").value.trim() || null
+            password: document.getElementById("dirDocentePassword").value.trim() || null
           })
         });
         mostrarMensaje("mensajeDocentes", `Docente guardado. Usuario: ${data.usuario} | Contraseña: ${data.password}`, "success");
@@ -1194,6 +1205,7 @@
   </script>
 </body>
 </html>
+
 
 
 

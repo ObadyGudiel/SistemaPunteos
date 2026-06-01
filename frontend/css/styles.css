@@ -134,12 +134,12 @@ h2 {
 }
 
 .title-rule {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
   gap: 16px;
   width: min(340px, 90%);
-  margin-bottom: 30px;
+  margin: 0 auto 30px;
 }
 
 .title-rule span {
@@ -340,6 +340,35 @@ textarea {
 
 .form-group {
   margin-bottom: 15px;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 74px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  width: auto;
+  min-width: 56px;
+  min-height: 0;
+  padding: 7px 10px;
+  transform: translateY(-50%);
+  border: 1px solid #d8e0ee;
+  background: #f8fafc;
+  color: var(--blue);
+  box-shadow: none;
+  font-size: 13px;
+}
+
+.password-toggle:hover {
+  transform: translateY(-50%);
+  background: #eef4ff;
 }
 
 button {
@@ -796,6 +825,12 @@ code {
     min-height: 46px;
   }
 
+  .password-toggle {
+    width: auto;
+    min-width: 56px;
+    min-height: 0;
+  }
+
   .form-grid,
   .student-info {
     grid-template-columns: 1fr;
@@ -846,9 +881,9 @@ code {
   }
 
   .title-rule {
-    width: min(260px, 76%);
-    gap: 12px;
-    margin-bottom: 24px;
+    width: min(320px, 84%);
+    gap: 14px;
+    margin: 0 auto 24px;
   }
 
   .title-rule i {
