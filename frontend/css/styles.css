@@ -680,6 +680,7 @@ code {
 
   .brand-marks {
     gap: 10px;
+    margin-bottom: 12px;
   }
 
   .logo-frame,
@@ -689,12 +690,18 @@ code {
     height: 78px;
   }
 
+  .hero-card .school-logo {
+    width: 86px;
+    height: 86px;
+  }
+
   .school-badge {
     font-size: 18px;
   }
 
   h1 {
     font-size: 30px;
+    margin: 10px 0 18px;
   }
 
   h2,
@@ -819,6 +826,29 @@ code {
 }
 
 @media (max-width: 520px) {
+  .hero-card {
+    padding: 26px 16px;
+  }
+
+  .hero-card .school-logo {
+    width: 74px;
+    height: 74px;
+  }
+
+  .brand-marks {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 28px;
+    line-height: 1.08;
+  }
+
+  .title-rule {
+    margin-bottom: 24px;
+  }
+
   .feature-strip {
     grid-template-columns: 1fr;
   }
