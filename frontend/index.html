@@ -10,18 +10,31 @@
 <body>
   <div id="loginView" class="login-container">
     <div class="hero-card card">
-      <h1>Sistema de Punteos</h1>
-      <div class="instituto">
-        Instituto Básico y Diversificado por cooperativa Aldea San Luis,
-        San Sebastián, Retalhuleu.
+      <div class="brand-marks">
+        <div class="school-badge badge-gold">SL</div>
+        <span class="brand-divider"></span>
+        <div class="school-badge badge-blue">IBD</div>
       </div>
-      <p>
-        Plataforma para dirección, docentes y estudiantes. Dirección administra cuentas,
-        cursos y asignaciones; docentes registran punteos; estudiantes consultan resultados.
-      </p>
+      <h1>Plataforma Institucional</h1>
+      <div class="title-rule"><span></span><i></i><span></span></div>
+      <div class="institution-pill">
+        <span class="pill-icon">US</span>
+        <div>
+          <strong>Instituto Básico y Diversificado por Cooperativa "San Luis"</strong>
+          <small>San Sebastián, Retalhuleu.</small>
+        </div>
+      </div>
+      <p>Gestión de punteos académicos de forma segura, eficiente y accesible.</p>
+      <div class="feature-strip">
+        <div><span>OK</span><strong>Seguro</strong><small>Tu información está protegida</small></div>
+        <div><span>99</span><strong>Confiable</strong><small>Datos precisos y actualizados</small></div>
+        <div><span>24</span><strong>Accesible</strong><small>Desde cualquier dispositivo</small></div>
+        <div><span>ED</span><strong>Educativo</strong><small>Apoya el aprendizaje</small></div>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="login-card card">
+      <div class="login-avatar">U</div>
       <h2>Iniciar sesión</h2>
 
       <div class="form-group">
@@ -44,22 +57,30 @@
       </div>
 
       <button class="btn-primary btn-full" onclick="iniciarSesion()">Entrar al sistema</button>
+      <p class="login-note">Acceso autorizado únicamente para usuarios registrados.</p>
       <div id="mensajeLogin" class="message"></div>
     </div>
   </div>
 
   <div id="appView" class="hidden">
     <div class="topbar">
-      <div>
-        <strong>Instituto Básico y Diversificado por cooperativa Aldea San Luis</strong>
+      <div class="school-brand">
+        <div class="brand-marks topbar-marks">
+          <div class="school-badge badge-gold">SL</div>
+          <div class="school-badge badge-blue">IBD</div>
+        </div>
+        <div>
+        <strong>Instituto Básico y Diversificado por cooperativa Aldea San Luis, San Sebastián, Retalhuleu.</strong>
         <span id="usuarioActual"></span>
+        </div>
       </div>
       <button class="btn-danger" onclick="cerrarSesion()">Cerrar sesión</button>
     </div>
 
     <div class="container">
       <div id="panelDirector" class="hidden">
-        <div class="card">
+        <div class="card panel-shell">
+          <div class="panel-icon">DIR</div>
           <h2>Panel del director</h2>
           <div class="menu">
             <button id="dirBtnPunteos" class="active" onclick="mostrarSeccionDirector('punteos')">Todos los punteos</button>
@@ -109,7 +130,7 @@
           <div class="table-wrapper">
             <table>
               <thead>
-                <tr><th>Usuario</th><th>Docente</th><th>Contraseña</th><th>Cursos asignados</th><th>Estado</th><th>Acción</th></tr>
+                <tr><th>Usuario</th><th>Docente</th><th>Contraseña</th><th>Cursos asignados</th><th>Estado</th></tr>
               </thead>
               <tbody id="tablaDocentes"></tbody>
             </table>
@@ -133,12 +154,15 @@
           <div class="form-grid">
             <div class="form-group"><label>Importar estudiantes Excel</label><input id="dirArchivoEstudiantes" type="file" accept=".xlsx" /></div>
           </div>
-          <button class="btn-primary" onclick="importarEstudiantesDirector()">Importar estudiantes</button>
+          <div class="action-row">
+            <button class="btn-primary" onclick="importarEstudiantesDirector()">Importar estudiantes</button>
+            <button class="btn-dark" onclick="descargarPdfCredencialesEstudiantes()">Descargar PDF de contraseñas</button>
+          </div>
           <div id="mensajeEstudiantesDir" class="message"></div>
           <div class="table-wrapper">
             <table>
               <thead>
-                <tr><th>Carnet</th><th>Nombre</th><th>Carrera</th><th>Grado</th><th>Ciclo</th><th>Contraseña</th><th>Acción</th></tr>
+                <tr><th>Carnet</th><th>Nombre</th><th>Carrera</th><th>Grado</th><th>Ciclo</th><th>Contraseña</th></tr>
               </thead>
               <tbody id="tablaEstudiantesDir"></tbody>
             </table>
@@ -185,13 +209,15 @@
       </div>
 
       <div id="panelDocente" class="hidden">
-        <div class="card">
+        <div class="card panel-shell">
+          <div class="panel-icon">DOC</div>
           <h2>Panel del docente</h2>
           <div class="menu">
             <button id="docBtnVer" class="active" onclick="mostrarSeccionDocente('ver')">Mis cursos y punteos</button>
             <button id="docBtnInsertar" onclick="mostrarSeccionDocente('insertar')">Registrar punteo</button>
             <button id="docBtnImportar" onclick="mostrarSeccionDocente('importar')">Subir Excel</button>
             <button id="docBtnAsignar" onclick="mostrarSeccionDocente('asignar')">Asignar curso</button>
+            <button id="docBtnPassword" onclick="mostrarSeccionDocente('password')">Cambiar contraseña</button>
           </div>
         </div>
 
@@ -265,10 +291,22 @@
           <button class="btn-danger" onclick="quitarCursoAEstudiantes()">Quitar de estudiantes</button>
           <div id="mensajeDocAsignar" class="message"></div>
         </div>
+
+        <div id="docPassword" class="card docente-section hidden password-card">
+          <h2>Cambiar contraseña</h2>
+          <div class="form-grid">
+            <div class="form-group"><label>Contraseña actual</label><input id="docPasswordActual" type="password" /></div>
+            <div class="form-group"><label>Nueva contraseña</label><input id="docPasswordNueva" type="password" /></div>
+            <div class="form-group"><label>Confirmar contraseña</label><input id="docPasswordConfirmar" type="password" /></div>
+          </div>
+          <button class="btn-primary" onclick="cambiarPassword('docente')">Guardar contraseña</button>
+          <div id="mensajeDocPassword" class="message"></div>
+        </div>
       </div>
 
       <div id="panelEstudiante" class="hidden">
-        <div class="card">
+        <div class="card student-hero">
+          <div class="panel-icon">EST</div>
           <h2>Panel del estudiante</h2>
           <div class="student-info">
             <div class="info-box"><strong>Código de carnet</strong><span id="estCodigo"></span></div>
@@ -279,7 +317,7 @@
           </div>
         </div>
         <div class="card">
-          <h2>Mis punteos por curso</h2>
+          <h2>Mis punteos</h2>
           <div id="mensajeEstudiante" class="message"></div>
           <div class="table-wrapper">
             <table>
@@ -287,6 +325,16 @@
               <tbody id="tablaEstudiante"></tbody>
             </table>
           </div>
+        </div>
+        <div class="card password-card">
+          <h2>Cambiar contraseña</h2>
+          <div class="form-grid">
+            <div class="form-group"><label>Contraseña actual</label><input id="estPasswordActual" type="password" /></div>
+            <div class="form-group"><label>Nueva contraseña</label><input id="estPasswordNueva" type="password" /></div>
+            <div class="form-group"><label>Confirmar contraseña</label><input id="estPasswordConfirmar" type="password" /></div>
+          </div>
+          <button class="btn-primary" onclick="cambiarPassword('estudiante')">Guardar contraseña</button>
+          <div id="mensajeEstPassword" class="message"></div>
         </div>
       </div>
     </div>
@@ -298,6 +346,7 @@
     let usuarioActual = null;
     let catalogosCargados = false;
     let catalogos = null;
+    let estudiantesDirectorData = [];
 
     async function api(path, options = {}) {
       const respuesta = await fetch(`${API_URL}${path}`, options);
@@ -483,15 +532,18 @@
       return;
     }
 
-    // Ordenar primero por curso y después por el nombre del estudiante
+    // Ordenar por carrera, grado y estudiante para que las tablas queden agrupadas.
     const datosOrdenados = [...data].sort((a, b) => {
-      const compararCurso = (a.curso || "").localeCompare(
-        b.curso || "",
+      const compararCarrera = (a.carrera || "").localeCompare(
+        b.carrera || "",
         "es",
         { sensitivity: "base" }
       );
 
-      if (compararCurso !== 0) return compararCurso;
+      if (compararCarrera !== 0) return compararCarrera;
+
+      const compararGrado = obtenerOrdenGrado(a.grado) - obtenerOrdenGrado(b.grado);
+      if (compararGrado !== 0) return compararGrado;
 
       const compararApellido = (a.apellidos || "").localeCompare(
         b.apellidos || "",
@@ -501,11 +553,14 @@
 
       if (compararApellido !== 0) return compararApellido;
 
-      return (a.nombres || "").localeCompare(
+      const compararNombre = (a.nombres || "").localeCompare(
         b.nombres || "",
         "es",
         { sensitivity: "base" }
       );
+      if (compararNombre !== 0) return compararNombre;
+
+      return (a.curso || "").localeCompare(b.curso || "", "es", { sensitivity: "base" });
     });
 
     datosOrdenados.forEach(row => {
@@ -549,8 +604,7 @@
           <td>${escapar(row.nombre_completo)}</td>
           <td><code>${escapar(row.password_temporal || "")}</code></td>
           <td class="text-left">${escapar(row.cursos_asignados || "Sin cursos")}</td>
-          <td>${row.estado ? "Activo" : "Inactivo"}</td>
-          <td><button class="btn-warning btn-small" onclick="regenerarPasswordDocente('${escapar(row.codigo_docente)}')">Regenerar</button></td>`;
+          <td>${row.estado ? "Activo" : "Inactivo"}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -575,17 +629,13 @@
       }
     }
 
-    async function regenerarPasswordDocente(codigo) {
-      const data = await api(`/director/docentes/${encodeURIComponent(codigo)}/regenerar-password`, { method: "POST" });
-      mostrarMensaje("mensajeDocentes", `Nueva contraseña para ${data.usuario}: ${data.password_temporal}`, "success");
-      await cargarDocentes();
-    }
-
     async function cargarEstudiantesDirector() {
       const data = await api("/director/estudiantes");
       const tbody = document.getElementById("tablaEstudiantesDir");
       tbody.innerHTML = "";
-      data.forEach(row => {
+      const datosOrdenados = [...data].sort(compararPorCarreraGradoNombre);
+      estudiantesDirectorData = datosOrdenados;
+      datosOrdenados.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${escapar(row.codigo_carnet)}</td>
@@ -593,8 +643,7 @@
           <td>${escapar(row.carrera || "")}</td>
           <td>${escapar(row.grado || "")}</td>
           <td>${escapar(row.ciclo_escolar || "")}</td>
-          <td><code>${escapar(row.password_temporal || "")}</code></td>
-          <td><button class="btn-warning btn-small" onclick="regenerarPasswordEstudiante('${escapar(row.codigo_carnet)}')">Regenerar</button></td>`;
+          <td><code>${escapar(row.password_temporal || "")}</code></td>`;
         tbody.appendChild(tr);
       });
     }
@@ -637,12 +686,6 @@
       } catch (error) {
         mostrarMensaje("mensajeEstudiantesDir", error.message, "error");
       }
-    }
-
-    async function regenerarPasswordEstudiante(codigo) {
-      const data = await api(`/director/estudiantes/${encodeURIComponent(codigo)}/regenerar-password`, { method: "POST" });
-      mostrarMensaje("mensajeEstudiantesDir", `Nueva contraseña para ${data.usuario}: ${data.password_temporal}`, "success");
-      await cargarEstudiantesDirector();
     }
 
     async function cargarCursos() {
@@ -836,6 +879,179 @@
       }
     }
 
+    async function cambiarPassword(rol) {
+      const prefijo = rol === "docente" ? "doc" : "est";
+      const mensajeId = rol === "docente" ? "mensajeDocPassword" : "mensajeEstPassword";
+      const actual = document.getElementById(`${prefijo}PasswordActual`).value;
+      const nueva = document.getElementById(`${prefijo}PasswordNueva`).value.trim();
+      const confirmar = document.getElementById(`${prefijo}PasswordConfirmar`).value.trim();
+
+      if (!actual || !nueva || !confirmar) {
+        mostrarMensaje(mensajeId, "Complete todos los campos de contraseña.", "error");
+        return;
+      }
+      if (nueva.length < 6) {
+        mostrarMensaje(mensajeId, "La nueva contraseña debe tener al menos 6 caracteres.", "error");
+        return;
+      }
+      if (nueva !== confirmar) {
+        mostrarMensaje(mensajeId, "La confirmación no coincide con la nueva contraseña.", "error");
+        return;
+      }
+
+      try {
+        await api("/usuarios/cambiar-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rol,
+            usuario: usuarioActual.codigo,
+            password_actual: actual,
+            password_nueva: nueva
+          })
+        });
+        document.getElementById(`${prefijo}PasswordActual`).value = "";
+        document.getElementById(`${prefijo}PasswordNueva`).value = "";
+        document.getElementById(`${prefijo}PasswordConfirmar`).value = "";
+        mostrarMensaje(mensajeId, "Contraseña actualizada. Dirección verá la modificación en su panel.", "success");
+      } catch (error) {
+        mostrarMensaje(mensajeId, error.message, "error");
+      }
+    }
+
+    async function descargarPdfCredencialesEstudiantes() {
+      try {
+        if (estudiantesDirectorData.length === 0) {
+          estudiantesDirectorData = [...await api("/director/estudiantes")].sort(compararPorCarreraGradoNombre);
+        }
+        if (estudiantesDirectorData.length === 0) {
+          mostrarMensaje("mensajeEstudiantesDir", "No hay estudiantes para generar el PDF.", "info");
+          return;
+        }
+
+        const filas = estudiantesDirectorData.map(row => ({
+          carnet: row.codigo_carnet || "",
+          nombre: `${row.apellidos || ""}, ${row.nombres || ""}`.trim(),
+          password: row.password_temporal || ""
+        }));
+
+        const pdf = crearPdfCredenciales(filas);
+        const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
+        const enlace = document.createElement("a");
+        enlace.href = url;
+        enlace.download = `credenciales-estudiantes-${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        URL.revokeObjectURL(url);
+        mostrarMensaje("mensajeEstudiantesDir", "PDF de contraseñas generado correctamente.", "success");
+      } catch (error) {
+        mostrarMensaje("mensajeEstudiantesDir", error.message, "error");
+      }
+    }
+
+    function crearPdfCredenciales(filas) {
+      const ancho = 612;
+      const alto = 792;
+      const margenX = 46;
+      const inicioY = 718;
+      const altoFila = 21;
+      const filasPorPagina = 28;
+      const paginas = [];
+
+      for (let i = 0; i < filas.length; i += filasPorPagina) {
+        paginas.push(filas.slice(i, i + filasPorPagina));
+      }
+
+      const objetos = [];
+      const idsPaginas = [];
+      const fontId = agregarObjeto("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+      const fontBoldId = agregarObjeto("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+
+      paginas.forEach((pagina, indicePagina) => {
+        const lineas = [];
+        lineas.push("q");
+        lineas.push("0.96 0.97 1 rg");
+        lineas.push(`0 0 ${ancho} ${alto} re f`);
+        lineas.push("0.03 0.11 0.25 rg");
+        lineas.push(`0 ${alto - 92} ${ancho} 92 re f`);
+        escribirTexto(lineas, "F2", 17, margenX, 748, "Instituto Básico y Diversificado por Cooperativa Aldea San Luis");
+        escribirTexto(lineas, "F1", 11, margenX, 728, "Listado de credenciales de estudiantes");
+        escribirTexto(lineas, "F1", 9, margenX, 708, `Generado: ${new Date().toLocaleDateString("es-GT")}   Página ${indicePagina + 1} de ${paginas.length}`);
+
+        lineas.push("0.10 0.32 0.82 rg");
+        lineas.push(`${margenX} 676 520 28 re f`);
+        escribirTexto(lineas, "F2", 10, margenX + 12, 686, "Carnet");
+        escribirTexto(lineas, "F2", 10, margenX + 120, 686, "Nombre completo");
+        escribirTexto(lineas, "F2", 10, margenX + 410, 686, "Contraseña");
+
+        pagina.forEach((row, index) => {
+          const y = inicioY - 60 - (index + 1) * altoFila;
+          if (index % 2 === 0) {
+            lineas.push("1 1 1 rg");
+          } else {
+            lineas.push("0.93 0.95 0.98 rg");
+          }
+          lineas.push(`${margenX} ${y - 5} 520 ${altoFila} re f`);
+          escribirTexto(lineas, "F1", 9, margenX + 12, y + 2, limitarTexto(row.carnet, 18));
+          escribirTexto(lineas, "F1", 9, margenX + 120, y + 2, limitarTexto(row.nombre, 48));
+          escribirTexto(lineas, "F1", 9, margenX + 410, y + 2, limitarTexto(row.password, 22));
+        });
+
+        escribirTexto(lineas, "F1", 8, margenX, 38, "Documento para uso interno de dirección. Resguardar las credenciales de forma segura.");
+        lineas.push("Q");
+
+        const contenido = `${lineas.join("\n")}\n`;
+        const contenidoId = agregarObjeto(`<< /Length ${contenido.length} >>\nstream\n${contenido}endstream`);
+        const paginaId = agregarObjeto(`<< /Type /Page /Parent 0 0 R /MediaBox [0 0 ${ancho} ${alto}] /Resources << /Font << /F1 ${fontId} 0 R /F2 ${fontBoldId} 0 R >> >> /Contents ${contenidoId} 0 R >>`);
+        idsPaginas.push(paginaId);
+      });
+
+      const paginasId = agregarObjeto(`<< /Type /Pages /Kids [${idsPaginas.map(id => `${id} 0 R`).join(" ")}] /Count ${idsPaginas.length} >>`);
+      idsPaginas.forEach(id => {
+        objetos[id - 1] = objetos[id - 1].replace("/Parent 0 0 R", `/Parent ${paginasId} 0 R`);
+      });
+      const catalogoId = agregarObjeto(`<< /Type /Catalog /Pages ${paginasId} 0 R >>`);
+
+      let pdf = "%PDF-1.4\n";
+      const offsets = [0];
+      objetos.forEach((objeto, index) => {
+        offsets.push(pdf.length);
+        pdf += `${index + 1} 0 obj\n${objeto}\nendobj\n`;
+      });
+      const inicioXref = pdf.length;
+      pdf += `xref\n0 ${objetos.length + 1}\n0000000000 65535 f \n`;
+      for (let i = 1; i < offsets.length; i++) {
+        pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+      }
+      pdf += `trailer\n<< /Size ${objetos.length + 1} /Root ${catalogoId} 0 R >>\nstartxref\n${inicioXref}\n%%EOF`;
+      return pdf;
+
+      function agregarObjeto(contenido) {
+        objetos.push(contenido);
+        return objetos.length;
+      }
+
+      function escribirTexto(lineasPdf, fuente, tamano, x, y, texto) {
+        lineasPdf.push(`BT /${fuente} ${tamano} Tf ${x} ${y} Td (${escaparPdf(texto)}) Tj ET`);
+      }
+    }
+
+    function limitarTexto(texto, maximo) {
+      texto = String(texto || "");
+      return texto.length > maximo ? `${texto.slice(0, maximo - 3)}...` : texto;
+    }
+
+    function escaparPdf(texto) {
+      return String(texto || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\x20-\x7E]/g, "")
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+    }
+
     function validarNota(datos, mensajeId) {
       if (!datos.codigo_carnet || !datos.carrera || !datos.grado || !datos.curso || !datos.bimestre || !datos.ciclo_escolar) {
         mostrarMensaje(mensajeId, "Debe completar código, carrera, grado, curso, bimestre y ciclo.", "error");
@@ -903,6 +1119,34 @@
       if (valor === null || valor === undefined || valor === "") return "0";
       const numero = Number(valor);
       return isNaN(numero) ? valor : numero.toFixed(2);
+    }
+
+    function obtenerOrdenGrado(grado) {
+      const texto = normalizarTexto(grado);
+      if (texto.includes("4") || texto.includes("cuarto")) return 4;
+      if (texto.includes("5") || texto.includes("quinto")) return 5;
+      if (texto.includes("6") || texto.includes("sexto")) return 6;
+      if (texto.includes("1") || texto.includes("primero")) return 1;
+      if (texto.includes("2") || texto.includes("segundo")) return 2;
+      if (texto.includes("3") || texto.includes("tercero")) return 3;
+      return 99;
+    }
+
+    function normalizarTexto(valor) {
+      return String(valor || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function compararPorCarreraGradoNombre(a, b) {
+      const carrera = (a.carrera || "").localeCompare(b.carrera || "", "es", { sensitivity: "base" });
+      if (carrera !== 0) return carrera;
+      const grado = obtenerOrdenGrado(a.grado) - obtenerOrdenGrado(b.grado);
+      if (grado !== 0) return grado;
+      const apellido = (a.apellidos || "").localeCompare(b.apellidos || "", "es", { sensitivity: "base" });
+      if (apellido !== 0) return apellido;
+      return (a.nombres || a.nombre_completo || "").localeCompare(b.nombres || b.nombre_completo || "", "es", { sensitivity: "base" });
     }
 
     function escapar(valor) {

@@ -292,6 +292,13 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class CambiarPasswordRequest(BaseModel):
+    rol: str
+    usuario: str
+    password_actual: str
+    password_nueva: str
+
+
 class NotaRequest(BaseModel):
     codigo_carnet: str
     carrera: str
@@ -440,6 +447,66 @@ def login(data: LoginRequest):
         cerrar_conexion(cursor, conn)
 
 
+@app.post("/usuarios/cambiar-password")
+def cambiar_password(data: CambiarPasswordRequest):
+    conn = None
+    cursor = None
+    try:
+        rol = data.rol.lower().strip()
+        usuario = data.usuario.strip()
+        password_nueva = data.password_nueva.strip()
+
+        if rol not in ("docente", "estudiante"):
+            raise HTTPException(status_code=400, detail="Solo docentes y estudiantes pueden cambiar su contraseña")
+        if len(password_nueva) < 6:
+            raise HTTPException(status_code=400, detail="La nueva contraseña debe tener al menos 6 caracteres")
+
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(
+            """
+            SELECT rol, usuario, nombre_completo, password_hash
+            FROM usuarios
+            WHERE lower(rol) = %s
+              AND usuario = %s
+              AND estado = TRUE;
+            """,
+            (rol, usuario),
+        )
+        cuenta = cursor.fetchone()
+        if not cuenta or not verificar_password(data.password_actual, cuenta["password_hash"]):
+            raise HTTPException(status_code=401, detail="La contraseña actual no es correcta")
+
+        cursor.execute(
+            """
+            UPDATE usuarios
+            SET password_hash = %s,
+                password_temporal = %s
+            WHERE lower(rol) = %s
+              AND usuario = %s
+            RETURNING rol, usuario, nombre_completo, password_temporal;
+            """,
+            (hash_password(password_nueva), password_nueva, rol, usuario),
+        )
+        cuenta_actualizada = cursor.fetchone()
+        conn.commit()
+        return {
+            "mensaje": "Contraseña actualizada correctamente",
+            **limpiar_fila(cuenta_actualizada),
+        }
+
+    except HTTPException:
+        if conn:
+            conn.rollback()
+        raise
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
+    finally:
+        cerrar_conexion(cursor, conn)
+
+
 @app.get("/estudiantes/{codigo_carnet}")
 def obtener_estudiante(codigo_carnet: str):
     conn = None
@@ -453,7 +520,7 @@ def obtener_estudiante(codigo_carnet: str):
             SELECT *
             FROM vista_promedio_alumnos
             WHERE codigo_carnet = %s
-            ORDER BY curso;
+            ORDER BY carrera, grado, curso;
             """,
             (codigo_carnet,),
         )
@@ -569,7 +636,7 @@ def obtener_punteos(carrera, grado, curso, ciclo_escolar, codigo_docente, solo_d
                   AND dc.estado = TRUE
             LEFT JOIN docentes d ON d.id_docente = dc.id_docente
             {where_sql}
-            ORDER BY v.carrera, v.grado, v.apellidos, v.nombres, v.curso;
+            ORDER BY v.carrera, gr.numero, v.apellidos, v.nombres, v.curso;
             """,
             parametros,
         )
