@@ -310,9 +310,9 @@
         <div id="docPassword" class="card docente-section hidden password-card">
           <h2>Cambiar contraseña</h2>
           <div class="form-grid">
-            <div class="form-group"><label>Contraseña actual</label><input id="docPasswordActual" type="password" /></div>
-            <div class="form-group"><label>Nueva contraseña</label><input id="docPasswordNueva" type="password" /></div>
-            <div class="form-group"><label>Confirmar contraseña</label><input id="docPasswordConfirmar" type="password" /></div>
+            <div class="form-group"><label>Contraseña actual</label><div class="password-field"><input id="docPasswordActual" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('docPasswordActual', this)">Ver</button></div></div>
+            <div class="form-group"><label>Nueva contraseña</label><div class="password-field"><input id="docPasswordNueva" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('docPasswordNueva', this)">Ver</button></div></div>
+            <div class="form-group"><label>Confirmar contraseña</label><div class="password-field"><input id="docPasswordConfirmar" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('docPasswordConfirmar', this)">Ver</button></div></div>
           </div>
           <button class="btn-primary" onclick="cambiarPassword('docente')">Guardar contraseña</button>
           <div id="mensajeDocPassword" class="message"></div>
@@ -344,9 +344,9 @@
         <div class="card password-card">
           <h2>Cambiar contraseña</h2>
           <div class="form-grid">
-            <div class="form-group"><label>Contraseña actual</label><input id="estPasswordActual" type="password" /></div>
-            <div class="form-group"><label>Nueva contraseña</label><input id="estPasswordNueva" type="password" /></div>
-            <div class="form-group"><label>Confirmar contraseña</label><input id="estPasswordConfirmar" type="password" /></div>
+            <div class="form-group"><label>Contraseña actual</label><div class="password-field"><input id="estPasswordActual" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('estPasswordActual', this)">Ver</button></div></div>
+            <div class="form-group"><label>Nueva contraseña</label><div class="password-field"><input id="estPasswordNueva" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('estPasswordNueva', this)">Ver</button></div></div>
+            <div class="form-group"><label>Confirmar contraseña</label><div class="password-field"><input id="estPasswordConfirmar" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('estPasswordConfirmar', this)">Ver</button></div></div>
           </div>
           <button class="btn-primary" onclick="cambiarPassword('estudiante')">Guardar contraseña</button>
           <div id="mensajeEstPassword" class="message"></div>
@@ -503,6 +503,13 @@
     function alternarPasswordLogin() {
       const input = document.getElementById("passwordLogin");
       const boton = document.querySelector(".password-toggle");
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      boton.textContent = visible ? "Ver" : "Ocultar";
+    }
+
+    function alternarPasswordCampo(inputId, boton) {
+      const input = document.getElementById(inputId);
       const visible = input.type === "text";
       input.type = visible ? "password" : "text";
       boton.textContent = visible ? "Ver" : "Ocultar";
