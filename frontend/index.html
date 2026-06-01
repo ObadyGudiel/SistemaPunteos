@@ -12,13 +12,11 @@
     <div class="hero-card card">
       <div class="brand-marks">
         <div class="logo-frame">
-          <img class="school-logo logo-san-luis" src="img/logo-san-luis.png" alt="Logo Instituto por Cooperativa San Luis" onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
-          <span class="logo-fallback badge-gold" hidden>SL</span>
+          <img class="school-logo logo-san-luis" src="img/logo-san-luis.png" alt="Logo Instituto por Cooperativa San Luis" />
         </div>
         <span class="brand-divider"></span>
         <div class="logo-frame">
-          <img class="school-logo logo-diversificado" src="img/logo-diversificado.png" alt="Logo Instituto Diversificado por Cooperativa San Luis" onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
-          <span class="logo-fallback badge-blue" hidden>IBD</span>
+          <img class="school-logo logo-diversificado" src="img/logo-diversificado.png" alt="Logo Instituto Diversificado por Cooperativa San Luis" />
         </div>
       </div>
       <h1>Plataforma Institucional</h1>
@@ -73,12 +71,10 @@
       <div class="school-brand">
         <div class="brand-marks topbar-marks">
           <div class="logo-frame">
-            <img class="school-logo logo-san-luis" src="img/logo-san-luis.png" alt="Logo Instituto por Cooperativa San Luis" onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
-            <span class="logo-fallback badge-gold" hidden>SL</span>
+            <img class="school-logo logo-san-luis" src="img/logo-san-luis.png" alt="Logo Instituto por Cooperativa San Luis" />
           </div>
           <div class="logo-frame">
-            <img class="school-logo logo-diversificado" src="img/logo-diversificado.png" alt="Logo Instituto Diversificado por Cooperativa San Luis" onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
-            <span class="logo-fallback badge-blue" hidden>IBD</span>
+            <img class="school-logo logo-diversificado" src="img/logo-diversificado.png" alt="Logo Instituto Diversificado por Cooperativa San Luis" />
           </div>
         </div>
         <div>
@@ -947,8 +943,8 @@
           password: row.password_temporal || ""
         }));
 
-        const pdf = crearPdfCredenciales(filas);
-        const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
+        const pdfBytes = crearPdfCredenciales(filas);
+        const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }));
         const enlace = document.createElement("a");
         enlace.href = url;
         enlace.download = `credenciales-estudiantes-${new Date().toISOString().slice(0, 10)}.pdf`;
@@ -970,6 +966,7 @@
       const altoFila = 21;
       const filasPorPagina = 28;
       const paginas = [];
+      const encoder = new TextEncoder();
 
       for (let i = 0; i < filas.length; i += filasPorPagina) {
         paginas.push(filas.slice(i, i + filasPorPagina));
@@ -1014,7 +1011,7 @@
         lineas.push("Q");
 
         const contenido = `${lineas.join("\n")}\n`;
-        const contenidoId = agregarObjeto(`<< /Length ${contenido.length} >>\nstream\n${contenido}endstream`);
+        const contenidoId = agregarObjeto(`<< /Length ${medirBytes(contenido)} >>\nstream\n${contenido}endstream`);
         const paginaId = agregarObjeto(`<< /Type /Page /Parent 0 0 R /MediaBox [0 0 ${ancho} ${alto}] /Resources << /Font << /F1 ${fontId} 0 R /F2 ${fontBoldId} 0 R >> >> /Contents ${contenidoId} 0 R >>`);
         idsPaginas.push(paginaId);
       });
@@ -1028,16 +1025,16 @@
       let pdf = "%PDF-1.4\n";
       const offsets = [0];
       objetos.forEach((objeto, index) => {
-        offsets.push(pdf.length);
+        offsets.push(medirBytes(pdf));
         pdf += `${index + 1} 0 obj\n${objeto}\nendobj\n`;
       });
-      const inicioXref = pdf.length;
+      const inicioXref = medirBytes(pdf);
       pdf += `xref\n0 ${objetos.length + 1}\n0000000000 65535 f \n`;
       for (let i = 1; i < offsets.length; i++) {
         pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
       }
       pdf += `trailer\n<< /Size ${objetos.length + 1} /Root ${catalogoId} 0 R >>\nstartxref\n${inicioXref}\n%%EOF`;
-      return pdf;
+      return encoder.encode(pdf);
 
       function agregarObjeto(contenido) {
         objetos.push(contenido);
@@ -1046,6 +1043,10 @@
 
       function escribirTexto(lineasPdf, fuente, tamano, x, y, texto) {
         lineasPdf.push(`BT /${fuente} ${tamano} Tf ${x} ${y} Td (${escaparPdf(texto)}) Tj ET`);
+      }
+
+      function medirBytes(texto) {
+        return encoder.encode(texto).length;
       }
     }
 
