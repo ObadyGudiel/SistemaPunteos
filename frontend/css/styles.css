@@ -100,7 +100,12 @@ body {
   width: 104px;
   height: 104px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+  filter: brightness(1.12) saturate(1.12) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+}
+
+.hero-card .school-logo {
+  width: 124px;
+  height: 124px;
 }
 
 .brand-divider {
@@ -223,16 +228,18 @@ h2 {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(36, 88, 244, 0.85);
+  background: rgba(255, 255, 255, 0.96);
   color: white;
   font-size: 13px;
   font-weight: 900;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .feature-strip img {
   width: 34px;
   height: 34px;
   object-fit: contain;
+  filter: brightness(1.08) saturate(1.12);
 }
 
 .feature-strip small {
@@ -439,7 +446,7 @@ button:hover {
   height: 76px;
   font-size: 18px;
   overflow: hidden;
-  background: #eef5ff;
+  background: #ffffff;
 }
 
 .panel-icon img {
@@ -447,6 +454,7 @@ button:hover {
   height: 62px;
   object-fit: contain;
   display: block;
+  filter: brightness(1.08) saturate(1.12);
 }
 
 .menu {
@@ -569,6 +577,7 @@ tr:hover {
   height: 42px;
   object-fit: contain;
   margin-bottom: 10px;
+  filter: brightness(1.08) saturate(1.12);
 }
 
 .info-box strong {
