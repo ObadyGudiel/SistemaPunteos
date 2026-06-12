@@ -896,6 +896,13 @@ code {
   color: #1e3a8a;
 }
 
+.report-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
 .attendance-result-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1217,6 +1224,7 @@ code {
     grid-template-columns: 1fr;
   }
 
+  .report-actions,
   .attendance-result-actions,
   .daily-report-item {
     grid-template-columns: 1fr;

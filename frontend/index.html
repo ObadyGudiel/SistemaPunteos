@@ -274,26 +274,18 @@
         <div id="dirAsistencia" class="card director-section hidden">
           <div class="section-title">
             <h2>Reporte de asistencia</h2>
-            <button class="btn-primary" onclick="cargarAsistencias('director')">Actualizar reporte</button>
           </div>
           <div class="attendance-report">
-            <div class="form-grid">
-              <div class="form-group"><label>Fecha del reporte</label><input id="directorAsistenciaDesde" type="date" /></div>
-              <input id="directorAsistenciaHasta" type="hidden" />
-              <div class="form-group"><label>Carrera</label><select id="directorAsistenciaCarrera"></select></div>
-              <div class="form-group"><label>Grado</label><select id="directorAsistenciaGrado"></select></div>
-              <div class="form-group"><label>Ciclo escolar</label><select id="directorAsistenciaCiclo"></select></div>
-            </div>
-            <div class="action-row">
-              <button class="btn-dark" onclick="cargarAsistencias('director')">Buscar</button>
-              <button class="btn-primary" onclick="descargarReporteDiario('director')">Descargar PDF del día</button>
+            <div class="report-actions">
+              <button class="btn-dark" onclick="mostrarReportesPorDia('director')">Ver reportes por día</button>
+              <button class="btn-primary" onclick="descargarReporteDiario('director')">Descargar reporte del día</button>
             </div>
             <div id="mensajeDirectorAsistencia" class="message"></div>
-            <div class="daily-reports">
+            <div id="directorReportesPanel" class="daily-reports hidden">
               <h3>Reportes por día</h3>
               <div id="directorReportesDiarios" class="daily-report-list"></div>
             </div>
-            <div class="table-wrapper">
+            <div id="directorTablaAsistenciaPanel" class="table-wrapper hidden">
               <table>
                 <thead>
                   <tr><th>Fecha</th><th>Carnet</th><th>Alumno</th><th>Carrera</th><th>Grado</th><th>Entrada</th><th>Salida</th><th>Estado</th></tr>
@@ -392,7 +384,6 @@
         <div id="docAsistencia" class="card docente-section hidden">
           <div class="section-title">
             <h2>Asistencia QR</h2>
-            <button class="btn-primary" onclick="cargarAsistencias('docente')">Actualizar reporte</button>
           </div>
           <div class="attendance-layout">
             <div class="attendance-capture">
@@ -410,7 +401,7 @@
                 <button class="btn-danger" onclick="detenerScannerAsistencia('docente')">Detener</button>
               </div>
               <div class="form-grid">
-                <div class="form-group"><label>Código de carnet</label><input id="docenteAsistenciaCodigo" type="text" placeholder="Ej. I136TLF" oninput="registrarAsistenciaAuto('docente')" /></div>
+                <div class="form-group"><label>Código de carnet</label><input id="docenteAsistenciaCodigo" type="text" placeholder="" oninput="registrarAsistenciaAuto('docente')" /></div>
               </div>
               <div id="docenteAsistenciaResultado" class="attendance-result"></div>
               <div id="docenteAsistenciaAcciones" class="attendance-result-actions hidden">
@@ -419,23 +410,16 @@
               </div>
             </div>
             <div class="attendance-report">
-              <div class="form-grid">
-                <div class="form-group"><label>Fecha del reporte</label><input id="docenteAsistenciaDesde" type="date" /></div>
-                <input id="docenteAsistenciaHasta" type="hidden" />
-                <div class="form-group"><label>Carrera</label><select id="docenteAsistenciaCarrera"></select></div>
-                <div class="form-group"><label>Grado</label><select id="docenteAsistenciaGrado"></select></div>
-                <div class="form-group"><label>Ciclo escolar</label><select id="docenteAsistenciaCiclo"></select></div>
-              </div>
-              <div class="action-row">
-                <button class="btn-dark" onclick="cargarAsistencias('docente')">Buscar</button>
-                <button class="btn-primary" onclick="descargarReporteDiario('docente')">Descargar PDF del día</button>
+              <div class="report-actions">
+                <button class="btn-dark" onclick="mostrarReportesPorDia('docente')">Ver reportes por día</button>
+                <button class="btn-primary" onclick="descargarReporteDiario('docente')">Descargar reporte del día</button>
               </div>
               <div id="mensajeDocenteAsistencia" class="message"></div>
-              <div class="daily-reports">
+              <div id="docenteReportesPanel" class="daily-reports hidden">
                 <h3>Reportes por día</h3>
                 <div id="docenteReportesDiarios" class="daily-report-list"></div>
               </div>
-              <div class="table-wrapper">
+              <div id="docenteTablaAsistenciaPanel" class="table-wrapper hidden">
                 <table>
                   <thead>
                     <tr><th>Fecha</th><th>Carnet</th><th>Alumno</th><th>Carrera</th><th>Grado</th><th>Entrada</th><th>Salida</th><th>Estado</th></tr>
@@ -600,7 +584,7 @@
         document.getElementById("panelDirector").classList.remove("hidden");
         await cargarCatalogos();
         inicializarFechasAsistencia("director");
-        await Promise.all([cargarPunteosDirector(), cargarDocentes(), cargarEstudiantesDirector(), cargarCursos(), cargarAsignaciones(), cargarAsistencias("director")]);
+        await Promise.all([cargarPunteosDirector(), cargarDocentes(), cargarEstudiantesDirector(), cargarCursos(), cargarAsignaciones()]);
         return;
       }
 
@@ -609,7 +593,7 @@
         document.getElementById("panelDocente").classList.remove("hidden");
         await cargarCatalogos();
         inicializarFechasAsistencia("docente");
-        await Promise.all([cargarPunteosDocente(), cargarAsistencias("docente")]);
+        await cargarPunteosDocente();
         return;
       }
 
@@ -646,13 +630,6 @@
       llenarSelect("dirFiltroCurso", catalogos.cursos, "nombre", "Todos los cursos");
       llenarSelect("dirFiltroCiclo", catalogos.ciclos, "anio", "Todos los ciclos");
       llenarSelectDocentes("dirFiltroDocente", catalogos.docentes, "Todos los docentes");
-      llenarSelect("directorAsistenciaCarrera", catalogos.carreras, "nombre", "Todas las carreras");
-      llenarSelect("directorAsistenciaGrado", catalogos.grados, "nombre", "Todos los grados");
-      llenarSelect("directorAsistenciaCiclo", catalogos.ciclos, "anio", "Todos los ciclos");
-      llenarSelect("docenteAsistenciaCarrera", catalogos.carreras, "nombre", "Todas las carreras");
-      llenarSelect("docenteAsistenciaGrado", catalogos.grados, "nombre", "Todos los grados");
-      llenarSelect("docenteAsistenciaCiclo", catalogos.ciclos, "anio", "Todos los ciclos");
-
       ["filtroCarrera", "insCarrera", "impCarrera", "docAsigCarrera", "estNewCarrera", "cursoCarrera", "asigCarrera"].forEach(id => llenarSelect(id, catalogos.carreras, "nombre", id === "filtroCarrera" ? "Todas las carreras" : "Seleccione carrera"));
       ["filtroGrado", "insGrado", "impGrado", "docAsigGrado", "estNewGrado", "cursoGrado", "asigGrado"].forEach(id => llenarSelect(id, catalogos.grados, "nombre", id === "filtroGrado" ? "Todos los grados" : "Seleccione grado"));
       ["filtroCurso", "insCurso", "impCurso", "docAsigCurso", "estNewCurso", "asigCurso"].forEach(id => llenarSelect(id, catalogos.cursos, "nombre", id === "filtroCurso" ? "Todos los cursos" : "Seleccione curso"));
@@ -921,7 +898,7 @@
       mostrarMensaje(mensajeId, "Cargando reporte de asistencia...", "info");
 
       const params = new URLSearchParams();
-      const desde = document.getElementById(`${panel}AsistenciaDesde`)?.value;
+      const desde = document.getElementById(`${panel}AsistenciaDesde`)?.value || asistenciaEstado[panel].fechaActual || new Date().toISOString().slice(0, 10);
       const hasta = desde;
       const carrera = document.getElementById(`${panel}AsistenciaCarrera`)?.value;
       const grado = document.getElementById(`${panel}AsistenciaGrado`)?.value;
@@ -939,6 +916,7 @@
         const data = await api(`${ruta}?${params.toString()}`);
         const datosOrdenados = ordenarAsistencias(data);
         asistenciaEstado[panel].datos = datosOrdenados;
+        asistenciaEstado[panel].fechaActual = desde;
         tbody.innerHTML = "";
         if (datosOrdenados.length === 0) {
           mostrarTablaVacia(tbody, 8, "No hay asistencia para mostrar", "Pruebe con otra fecha, grado o carrera.");
@@ -959,6 +937,7 @@
             <td class="${estadoClase}">${escapar(row.estado)}</td>`;
           tbody.appendChild(tr);
         });
+        mostrarPanelTablaAsistencia(panel, true);
         mostrarMensaje(mensajeId, "Reporte de asistencia cargado correctamente.", "success");
         await cargarDiasAsistencia(panel);
       } catch (error) {
@@ -1003,6 +982,22 @@
       }
     }
 
+    async function mostrarReportesPorDia(panel) {
+      mostrarPanelReportesDiarios(panel, true);
+      mostrarPanelTablaAsistencia(panel, false);
+      await cargarDiasAsistencia(panel);
+    }
+
+    function mostrarPanelReportesDiarios(panel, mostrar) {
+      const panelReportes = document.getElementById(panel === "director" ? "directorReportesPanel" : "docenteReportesPanel");
+      if (panelReportes) panelReportes.classList.toggle("hidden", !mostrar);
+    }
+
+    function mostrarPanelTablaAsistencia(panel, mostrar) {
+      const panelTabla = document.getElementById(panel === "director" ? "directorTablaAsistenciaPanel" : "docenteTablaAsistenciaPanel");
+      if (panelTabla) panelTabla.classList.toggle("hidden", !mostrar);
+    }
+
     async function verReporteDiario(panel, fecha = null) {
       const fechaReporte = fecha || asistenciaEstado[panel].fechaActual || new Date().toISOString().slice(0, 10);
       const desde = document.getElementById(`${panel}AsistenciaDesde`);
@@ -1010,6 +1005,7 @@
       if (desde) desde.value = fechaReporte;
       if (hasta) hasta.value = fechaReporte;
       asistenciaEstado[panel].fechaActual = fechaReporte;
+      mostrarPanelReportesDiarios(panel, true);
       await cargarAsistencias(panel);
       document.getElementById(panel === "director" ? "tablaDirectorAsistencia" : "tablaDocenteAsistencia")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
