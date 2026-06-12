@@ -761,6 +761,7 @@
         .split(", ")
         .map(curso => curso.trim())
         .filter(Boolean)
+        .map(curso => curso.replace(/\s*\(\d{4}\)\s*$/, ""))
         .sort((a, b) => {
           const grado = obtenerOrdenCursoAsignado(a) - obtenerOrdenCursoAsignado(b);
           if (grado !== 0) return grado;
