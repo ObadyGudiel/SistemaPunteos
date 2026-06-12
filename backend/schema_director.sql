@@ -37,6 +37,25 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_cursos_nombre
 CREATE UNIQUE INDEX IF NOT EXISTS idx_cursos_por_grado_unico
     ON cursos_por_grado (id_carrera, id_grado, id_curso);
 
+CREATE TABLE IF NOT EXISTS asistencias (
+    id_asistencia SERIAL PRIMARY KEY,
+    id_alumno INTEGER NOT NULL REFERENCES alumnos(id_alumno),
+    fecha DATE NOT NULL,
+    hora_entrada TIME,
+    hora_salida TIME,
+    registrado_por_rol VARCHAR(20) CHECK (registrado_por_rol IN ('docente')),
+    registrado_por_codigo VARCHAR(100),
+    creado_en TIMESTAMP NOT NULL DEFAULT NOW(),
+    actualizado_en TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (id_alumno, fecha)
+);
+
+CREATE INDEX IF NOT EXISTS idx_asistencias_fecha
+    ON asistencias (fecha);
+
+CREATE INDEX IF NOT EXISTS idx_asistencias_alumno_fecha
+    ON asistencias (id_alumno, fecha);
+
 -- Cuenta inicial del director.
 -- Usuario: director
 -- Contraseña: Director2026!

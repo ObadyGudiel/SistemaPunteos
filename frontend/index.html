@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sistema de Punteos Académicos</title>
   <link rel="stylesheet" href="css/styles.css?v=20260601-7" />
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -150,6 +151,7 @@
             <button id="dirBtnEstudiantes" onclick="mostrarSeccionDirector('estudiantes')">Estudiantes</button>
             <button id="dirBtnCursos" onclick="mostrarSeccionDirector('cursos')">Cursos</button>
             <button id="dirBtnAsignaciones" onclick="mostrarSeccionDirector('asignaciones')">Asignar cursos</button>
+            <button id="dirBtnAsistencia" onclick="mostrarSeccionDirector('asistencia')">Asistencia</button>
           </div>
         </div>
 
@@ -268,6 +270,35 @@
             </table>
           </div>
         </div>
+
+        <div id="dirAsistencia" class="card director-section hidden">
+          <div class="section-title">
+            <h2>Reporte de asistencia</h2>
+            <button class="btn-primary" onclick="cargarAsistencias('director')">Actualizar reporte</button>
+          </div>
+          <div class="attendance-report">
+            <div class="form-grid">
+              <div class="form-group"><label>Desde</label><input id="directorAsistenciaDesde" type="date" /></div>
+              <div class="form-group"><label>Hasta</label><input id="directorAsistenciaHasta" type="date" /></div>
+              <div class="form-group"><label>Carrera</label><select id="directorAsistenciaCarrera"></select></div>
+              <div class="form-group"><label>Grado</label><select id="directorAsistenciaGrado"></select></div>
+              <div class="form-group"><label>Ciclo escolar</label><select id="directorAsistenciaCiclo"></select></div>
+            </div>
+            <div class="action-row">
+              <button class="btn-dark" onclick="cargarAsistencias('director')">Buscar</button>
+              <button class="btn-primary" onclick="descargarPdfAsistencia('director')">Descargar PDF</button>
+            </div>
+            <div id="mensajeDirectorAsistencia" class="message"></div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Fecha</th><th>Carnet</th><th>Alumno</th><th>Carrera</th><th>Grado</th><th>Entrada</th><th>Salida</th><th>Estado</th></tr>
+                </thead>
+                <tbody id="tablaDirectorAsistencia"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="panelDocente" class="hidden">
@@ -279,6 +310,7 @@
             <button id="docBtnInsertar" onclick="mostrarSeccionDocente('insertar')">Registrar punteo</button>
             <button id="docBtnImportar" onclick="mostrarSeccionDocente('importar')">Subir Excel</button>
             <button id="docBtnAsignar" onclick="mostrarSeccionDocente('asignar')">Asignar curso</button>
+            <button id="docBtnAsistencia" onclick="mostrarSeccionDocente('asistencia')">Asistencia</button>
           </div>
         </div>
 
@@ -353,6 +385,57 @@
           <div id="mensajeDocAsignar" class="message"></div>
         </div>
 
+        <div id="docAsistencia" class="card docente-section hidden">
+          <div class="section-title">
+            <h2>Asistencia QR</h2>
+            <button class="btn-primary" onclick="cargarAsistencias('docente')">Actualizar reporte</button>
+          </div>
+          <div class="attendance-layout">
+            <div class="attendance-capture">
+              <div class="mode-toggle">
+                <button id="docenteEntradaBtn" class="active" onclick="seleccionarModoAsistencia('docente', 'entrada')">Entrada</button>
+                <button id="docenteSalidaBtn" onclick="seleccionarModoAsistencia('docente', 'salida')">Salida</button>
+              </div>
+              <div class="scanner-box">
+                <div id="docenteQrReader" class="qr-reader"></div>
+                <video id="docenteScannerVideo" playsinline muted></video>
+                <div id="docenteScannerEmpty" class="scanner-empty">Active la cámara para escanear carnets.</div>
+              </div>
+              <div class="action-row">
+                <button class="btn-success" onclick="iniciarScannerAsistencia('docente')">Activar cámara</button>
+                <button class="btn-danger" onclick="detenerScannerAsistencia('docente')">Detener</button>
+              </div>
+              <div class="form-grid">
+                <div class="form-group"><label>Código de carnet</label><input id="docenteAsistenciaCodigo" type="text" placeholder="Ej. I136TLF" /></div>
+              </div>
+              <button class="btn-dark" onclick="registrarAsistenciaManual('docente')">Registrar código</button>
+              <div id="docenteAsistenciaResultado" class="attendance-result"></div>
+            </div>
+            <div class="attendance-report">
+              <div class="form-grid">
+                <div class="form-group"><label>Desde</label><input id="docenteAsistenciaDesde" type="date" /></div>
+                <div class="form-group"><label>Hasta</label><input id="docenteAsistenciaHasta" type="date" /></div>
+                <div class="form-group"><label>Carrera</label><select id="docenteAsistenciaCarrera"></select></div>
+                <div class="form-group"><label>Grado</label><select id="docenteAsistenciaGrado"></select></div>
+                <div class="form-group"><label>Ciclo escolar</label><select id="docenteAsistenciaCiclo"></select></div>
+              </div>
+              <div class="action-row">
+                <button class="btn-dark" onclick="cargarAsistencias('docente')">Buscar</button>
+                <button class="btn-primary" onclick="descargarPdfAsistencia('docente')">Descargar PDF</button>
+              </div>
+              <div id="mensajeDocenteAsistencia" class="message"></div>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr><th>Fecha</th><th>Carnet</th><th>Alumno</th><th>Carrera</th><th>Grado</th><th>Entrada</th><th>Salida</th><th>Estado</th></tr>
+                  </thead>
+                  <tbody id="tablaDocenteAsistencia"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div id="panelEstudiante" class="hidden">
@@ -388,6 +471,10 @@
     let catalogosCargados = false;
     let catalogos = null;
     let estudiantesDirectorData = [];
+    const asistenciaEstado = {
+      director: { modo: "entrada", stream: null, qrReader: null, detectorActivo: false, ultimoCodigo: "", ultimaLectura: 0, datos: [] },
+      docente: { modo: "entrada", stream: null, qrReader: null, detectorActivo: false, ultimoCodigo: "", ultimaLectura: 0, datos: [] }
+    };
 
     async function api(path, options = {}) {
       const respuesta = await fetch(`${API_URL}${path}`, options);
@@ -501,7 +588,8 @@
         document.getElementById("usuarioActual").textContent = `Director: ${data.nombre_completo} | Usuario: ${data.codigo}`;
         document.getElementById("panelDirector").classList.remove("hidden");
         await cargarCatalogos();
-        await Promise.all([cargarPunteosDirector(), cargarDocentes(), cargarEstudiantesDirector(), cargarCursos(), cargarAsignaciones()]);
+        inicializarFechasAsistencia("director");
+        await Promise.all([cargarPunteosDirector(), cargarDocentes(), cargarEstudiantesDirector(), cargarCursos(), cargarAsignaciones(), cargarAsistencias("director")]);
         return;
       }
 
@@ -509,7 +597,8 @@
         document.getElementById("usuarioActual").textContent = `Docente: ${data.nombre_completo} | Usuario: ${data.codigo}`;
         document.getElementById("panelDocente").classList.remove("hidden");
         await cargarCatalogos();
-        await cargarPunteosDocente();
+        inicializarFechasAsistencia("docente");
+        await Promise.all([cargarPunteosDocente(), cargarAsistencias("docente")]);
         return;
       }
 
@@ -546,6 +635,12 @@
       llenarSelect("dirFiltroCurso", catalogos.cursos, "nombre", "Todos los cursos");
       llenarSelect("dirFiltroCiclo", catalogos.ciclos, "anio", "Todos los ciclos");
       llenarSelectDocentes("dirFiltroDocente", catalogos.docentes, "Todos los docentes");
+      llenarSelect("directorAsistenciaCarrera", catalogos.carreras, "nombre", "Todas las carreras");
+      llenarSelect("directorAsistenciaGrado", catalogos.grados, "nombre", "Todos los grados");
+      llenarSelect("directorAsistenciaCiclo", catalogos.ciclos, "anio", "Todos los ciclos");
+      llenarSelect("docenteAsistenciaCarrera", catalogos.carreras, "nombre", "Todas las carreras");
+      llenarSelect("docenteAsistenciaGrado", catalogos.grados, "nombre", "Todos los grados");
+      llenarSelect("docenteAsistenciaCiclo", catalogos.ciclos, "anio", "Todos los ciclos");
 
       ["filtroCarrera", "insCarrera", "impCarrera", "docAsigCarrera", "estNewCarrera", "cursoCarrera", "asigCarrera"].forEach(id => llenarSelect(id, catalogos.carreras, "nombre", id === "filtroCarrera" ? "Todas las carreras" : "Seleccione carrera"));
       ["filtroGrado", "insGrado", "impGrado", "docAsigGrado", "estNewGrado", "cursoGrado", "asigGrado"].forEach(id => llenarSelect(id, catalogos.grados, "nombre", id === "filtroGrado" ? "Todos los grados" : "Seleccione grado"));
@@ -620,6 +715,328 @@
           </div>
         </td>`;
       tbody.appendChild(tr);
+    }
+
+    function inicializarFechasAsistencia(panel) {
+      const hoy = new Date().toISOString().slice(0, 10);
+      const desde = document.getElementById(`${panel}AsistenciaDesde`);
+      const hasta = document.getElementById(`${panel}AsistenciaHasta`);
+      if (desde && !desde.value) desde.value = hoy;
+      if (hasta && !hasta.value) hasta.value = hoy;
+    }
+
+    function seleccionarModoAsistencia(panel, modo) {
+      asistenciaEstado[panel].modo = modo;
+      document.getElementById(`${panel}EntradaBtn`).classList.toggle("active", modo === "entrada");
+      document.getElementById(`${panel}SalidaBtn`).classList.toggle("active", modo === "salida");
+      mostrarResultadoAsistencia(panel, `Modo seleccionado: ${modo === "entrada" ? "Entrada" : "Salida"}.`, "info");
+    }
+
+    async function iniciarScannerAsistencia(panel) {
+      const mensajeId = obtenerMensajeAsistenciaId(panel);
+      if (!navigator.mediaDevices?.getUserMedia) {
+        mostrarMensaje(mensajeId, "El navegador no permite usar la cámara. Use el campo de código de carnet.", "error");
+        return;
+      }
+
+      await detenerScannerAsistencia(panel);
+      try {
+        const empty = document.getElementById(`${panel}ScannerEmpty`);
+        if ("Html5Qrcode" in window) {
+          const reader = new Html5Qrcode(`${panel}QrReader`);
+          asistenciaEstado[panel].qrReader = reader;
+          empty.classList.add("hidden");
+          await reader.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            codigo => procesarCodigoEscaneado(panel, codigo)
+          );
+          mostrarMensaje(mensajeId, "Cámara activa. Acerque el carnet al recuadro.", "info");
+          return;
+        }
+
+        if (!("BarcodeDetector" in window)) {
+          mostrarMensaje(mensajeId, "Este navegador no tiene lector QR disponible. Use el campo de código de carnet.", "error");
+          return;
+        }
+
+        const video = document.getElementById(`${panel}ScannerVideo`);
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        asistenciaEstado[panel].stream = stream;
+        asistenciaEstado[panel].detectorActivo = true;
+        video.srcObject = stream;
+        await video.play();
+        empty.classList.add("hidden");
+        mostrarMensaje(mensajeId, "Cámara activa. Acerque el carnet al recuadro.", "info");
+        detectarQrAsistencia(panel);
+      } catch (error) {
+        mostrarMensaje(mensajeId, "No se pudo activar la cámara. Revise permisos o use el registro manual.", "error");
+      }
+    }
+
+    async function detenerScannerAsistencia(panel) {
+      const estado = asistenciaEstado[panel];
+      estado.detectorActivo = false;
+      if (estado.qrReader) {
+        try {
+          await estado.qrReader.stop();
+        } catch (error) {
+          // El lector puede estar ya detenido si el navegador canceló la cámara.
+        }
+        try {
+          await estado.qrReader.clear();
+        } catch (error) {
+        }
+        estado.qrReader = null;
+      }
+      if (estado.stream) {
+        estado.stream.getTracks().forEach(track => track.stop());
+        estado.stream = null;
+      }
+      const video = document.getElementById(`${panel}ScannerVideo`);
+      const empty = document.getElementById(`${panel}ScannerEmpty`);
+      if (video) video.srcObject = null;
+      if (empty) empty.classList.remove("hidden");
+    }
+
+    async function detectarQrAsistencia(panel) {
+      const estado = asistenciaEstado[panel];
+      const video = document.getElementById(`${panel}ScannerVideo`);
+      const detector = new BarcodeDetector({ formats: ["qr_code"] });
+
+      while (estado.detectorActivo) {
+        try {
+          if (video.readyState >= 2) {
+            const codigos = await detector.detect(video);
+            if (codigos.length > 0) {
+              await procesarCodigoEscaneado(panel, codigos[0].rawValue);
+            }
+          }
+        } catch (error) {
+          mostrarMensaje(obtenerMensajeAsistenciaId(panel), "No se pudo leer el QR. Intente de nuevo o registre el código manualmente.", "error");
+        }
+        await new Promise(resolve => setTimeout(resolve, 450));
+      }
+    }
+
+    async function procesarCodigoEscaneado(panel, valor) {
+      const estado = asistenciaEstado[panel];
+      const codigo = String(valor || "").trim();
+      const ahora = Date.now();
+      if (!codigo || (codigo === estado.ultimoCodigo && ahora - estado.ultimaLectura <= 3500)) return;
+      estado.ultimoCodigo = codigo;
+      estado.ultimaLectura = ahora;
+      document.getElementById(`${panel}AsistenciaCodigo`).value = codigo;
+      await registrarAsistenciaCodigo(panel, codigo);
+    }
+
+    async function registrarAsistenciaManual(panel) {
+      const input = document.getElementById(`${panel}AsistenciaCodigo`);
+      const codigo = input.value.trim();
+      if (!codigo) {
+        mostrarMensaje(obtenerMensajeAsistenciaId(panel), "Ingrese o escanee un código de carnet.", "error");
+        return;
+      }
+      await registrarAsistenciaCodigo(panel, codigo);
+      input.select();
+    }
+
+    async function registrarAsistenciaCodigo(panel, codigo) {
+      const estado = asistenciaEstado[panel];
+      mostrarMensaje(obtenerMensajeAsistenciaId(panel), `Registrando ${estado.modo}...`, "info");
+      try {
+        const data = await api("/asistencias/registrar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            codigo_carnet: codigo,
+            tipo: estado.modo,
+            rol: usuarioActual.rol,
+            codigo_usuario: usuarioActual.codigo
+          })
+        });
+        mostrarResultadoAsistencia(panel, `${data.accion === "entrada" ? "Entrada" : "Salida"} registrada: ${data.apellidos}, ${data.nombres} (${data.codigo_carnet})`, "success");
+        mostrarMensaje(obtenerMensajeAsistenciaId(panel), "Asistencia registrada correctamente.", "success");
+        await cargarAsistencias(panel);
+      } catch (error) {
+        mostrarResultadoAsistencia(panel, `${codigo}: ${error.message}`, "error");
+        mostrarMensaje(obtenerMensajeAsistenciaId(panel), error.message, "error");
+      }
+    }
+
+    function mostrarResultadoAsistencia(panel, texto, tipo) {
+      const div = document.getElementById(`${panel}AsistenciaResultado`);
+      div.textContent = texto;
+      div.className = `attendance-result ${tipo || ""}`;
+    }
+
+    async function cargarAsistencias(panel) {
+      const mensajeId = obtenerMensajeAsistenciaId(panel);
+      const tbody = document.getElementById(panel === "director" ? "tablaDirectorAsistencia" : "tablaDocenteAsistencia");
+      if (!tbody) return;
+      mostrarMensaje(mensajeId, "Cargando reporte de asistencia...", "info");
+
+      const params = new URLSearchParams();
+      const desde = document.getElementById(`${panel}AsistenciaDesde`)?.value;
+      const hasta = document.getElementById(`${panel}AsistenciaHasta`)?.value;
+      const carrera = document.getElementById(`${panel}AsistenciaCarrera`)?.value;
+      const grado = document.getElementById(`${panel}AsistenciaGrado`)?.value;
+      const ciclo = document.getElementById(`${panel}AsistenciaCiclo`)?.value;
+
+      if (desde) params.append("fecha_inicio", desde);
+      if (hasta) params.append("fecha_fin", hasta);
+      if (carrera) params.append("carrera", carrera);
+      if (grado) params.append("grado", grado);
+      if (ciclo) params.append("ciclo_escolar", ciclo);
+      if (panel === "docente") params.append("codigo_docente", usuarioActual.codigo);
+
+      try {
+        const ruta = panel === "director" ? "/director/asistencias" : "/docente/asistencias";
+        const data = await api(`${ruta}?${params.toString()}`);
+        asistenciaEstado[panel].datos = data;
+        tbody.innerHTML = "";
+        if (data.length === 0) {
+          mostrarTablaVacia(tbody, 8, "No hay asistencia para mostrar", "Pruebe con otra fecha, grado o carrera.");
+          mostrarMensaje(mensajeId, "No hay registros para mostrar.", "info");
+          return;
+        }
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          const estadoClase = row.estado === "Completo" ? "aprobado" : "reprobado";
+          tr.innerHTML = `
+            <td>${escapar(formatearFecha(row.fecha))}</td>
+            <td>${escapar(row.codigo_carnet)}</td>
+            <td>${escapar(row.apellidos)}, ${escapar(row.nombres)}</td>
+            <td>${escapar(row.carrera)}</td>
+            <td>${escapar(row.grado)}</td>
+            <td>${escapar(formatearHora(row.hora_entrada))}</td>
+            <td>${escapar(formatearHora(row.hora_salida))}</td>
+            <td class="${estadoClase}">${escapar(row.estado)}</td>`;
+          tbody.appendChild(tr);
+        });
+        mostrarMensaje(mensajeId, "Reporte de asistencia cargado correctamente.", "success");
+      } catch (error) {
+        mostrarMensaje(mensajeId, error.message, "error");
+      }
+    }
+
+    function descargarPdfAsistencia(panel) {
+      const datos = asistenciaEstado[panel].datos || [];
+      const mensajeId = obtenerMensajeAsistenciaId(panel);
+      if (datos.length === 0) {
+        mostrarMensaje(mensajeId, "No hay datos para descargar.", "info");
+        return;
+      }
+      const pdfBytes = crearPdfAsistencia(datos, panel === "director" ? "Dirección" : usuarioActual.nombre_completo);
+      const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }));
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `reporte-asistencia-${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      URL.revokeObjectURL(url);
+      mostrarMensaje(mensajeId, "PDF de asistencia generado correctamente.", "success");
+    }
+
+    function crearPdfAsistencia(filas, responsable) {
+      const ancho = 792;
+      const alto = 612;
+      const margenX = 34;
+      const altoFila = 20;
+      const filasPorPagina = 22;
+      const paginas = [];
+      const encoder = new TextEncoder();
+      for (let i = 0; i < filas.length; i += filasPorPagina) paginas.push(filas.slice(i, i + filasPorPagina));
+
+      const objetos = [];
+      const idsPaginas = [];
+      const fontId = agregarObjeto("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+      const fontBoldId = agregarObjeto("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+
+      paginas.forEach((pagina, indicePagina) => {
+        const lineas = [];
+        lineas.push("q");
+        lineas.push("0.96 0.97 1 rg");
+        lineas.push(`0 0 ${ancho} ${alto} re f`);
+        lineas.push("0.03 0.11 0.25 rg");
+        lineas.push(`0 ${alto - 76} ${ancho} 76 re f`);
+        lineas.push("1 1 1 rg");
+        escribirTexto(lineas, "F2", 16, margenX, 562, "Reporte de asistencia");
+        escribirTexto(lineas, "F1", 9, margenX, 544, `Generado: ${new Date().toLocaleDateString("es-GT")}   Responsable: ${responsable}   Página ${indicePagina + 1} de ${paginas.length}`);
+        lineas.push("0.10 0.32 0.82 rg");
+        lineas.push(`${margenX} 504 724 26 re f`);
+        lineas.push("1 1 1 rg");
+        [["Fecha", 8], ["Carnet", 68], ["Alumno", 130], ["Carrera", 306], ["Grado", 456], ["Entrada", 552], ["Salida", 610], ["Estado", 666]].forEach(([texto, x]) => escribirTexto(lineas, "F2", 8, margenX + x, 514, texto));
+
+        pagina.forEach((row, index) => {
+          const y = 480 - index * altoFila;
+          lineas.push(index % 2 === 0 ? "1 1 1 rg" : "0.93 0.95 0.98 rg");
+          lineas.push(`${margenX} ${y - 5} 724 ${altoFila} re f`);
+          lineas.push("0.03 0.08 0.18 rg");
+          escribirTexto(lineas, "F1", 8, margenX + 8, y + 2, formatearFecha(row.fecha));
+          escribirTexto(lineas, "F1", 8, margenX + 68, y + 2, limitarTexto(row.codigo_carnet, 12));
+          escribirTexto(lineas, "F1", 8, margenX + 130, y + 2, limitarTexto(`${row.apellidos}, ${row.nombres}`, 30));
+          escribirTexto(lineas, "F1", 8, margenX + 306, y + 2, limitarTexto(row.carrera, 25));
+          escribirTexto(lineas, "F1", 8, margenX + 456, y + 2, limitarTexto(row.grado, 18));
+          escribirTexto(lineas, "F1", 8, margenX + 552, y + 2, formatearHora(row.hora_entrada));
+          escribirTexto(lineas, "F1", 8, margenX + 610, y + 2, formatearHora(row.hora_salida));
+          escribirTexto(lineas, "F1", 8, margenX + 666, y + 2, limitarTexto(row.estado, 16));
+        });
+        lineas.push("0.30 0.36 0.45 rg");
+        escribirTexto(lineas, "F1", 8, margenX, 30, "Documento para uso interno del instituto.");
+        lineas.push("Q");
+
+        const contenido = `${lineas.join("\n")}\n`;
+        const contenidoId = agregarObjeto(`<< /Length ${medirBytes(contenido)} >>\nstream\n${contenido}endstream`);
+        const paginaId = agregarObjeto(`<< /Type /Page /Parent 0 0 R /MediaBox [0 0 ${ancho} ${alto}] /Resources << /Font << /F1 ${fontId} 0 R /F2 ${fontBoldId} 0 R >> >> /Contents ${contenidoId} 0 R >>`);
+        idsPaginas.push(paginaId);
+      });
+
+      const paginasId = agregarObjeto(`<< /Type /Pages /Kids [${idsPaginas.map(id => `${id} 0 R`).join(" ")}] /Count ${idsPaginas.length} >>`);
+      idsPaginas.forEach(id => {
+        objetos[id - 1] = objetos[id - 1].replace("/Parent 0 0 R", `/Parent ${paginasId} 0 R`);
+      });
+      const catalogoId = agregarObjeto(`<< /Type /Catalog /Pages ${paginasId} 0 R >>`);
+
+      let pdf = "%PDF-1.4\n";
+      const offsets = [0];
+      objetos.forEach((objeto, index) => {
+        offsets.push(medirBytes(pdf));
+        pdf += `${index + 1} 0 obj\n${objeto}\nendobj\n`;
+      });
+      const inicioXref = medirBytes(pdf);
+      pdf += `xref\n0 ${objetos.length + 1}\n0000000000 65535 f \n`;
+      for (let i = 1; i < offsets.length; i++) pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+      pdf += `trailer\n<< /Size ${objetos.length + 1} /Root ${catalogoId} 0 R >>\nstartxref\n${inicioXref}\n%%EOF`;
+      return encoder.encode(pdf);
+
+      function agregarObjeto(contenido) {
+        objetos.push(contenido);
+        return objetos.length;
+      }
+      function escribirTexto(lineasPdf, fuente, tamano, x, y, texto) {
+        lineasPdf.push(`BT /${fuente} ${tamano} Tf ${x} ${y} Td (${escaparPdf(texto)}) Tj ET`);
+      }
+      function medirBytes(texto) {
+        return encoder.encode(texto).length;
+      }
+    }
+
+    function obtenerMensajeAsistenciaId(panel) {
+      return panel === "director" ? "mensajeDirectorAsistencia" : "mensajeDocenteAsistencia";
+    }
+
+    function formatearFecha(fecha) {
+      if (!fecha) return "";
+      const partes = String(fecha).split("-");
+      if (partes.length !== 3) return fecha;
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function formatearHora(hora) {
+      if (!hora) return "";
+      return String(hora).slice(0, 5);
     }
 
     async function cargarPunteosDirector() {

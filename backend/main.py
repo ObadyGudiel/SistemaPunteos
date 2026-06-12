@@ -5,6 +5,8 @@ from typing import Optional
 from decimal import Decimal
 from openpyxl import load_workbook
 from io import BytesIO
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 import base64
 import hashlib
 import os
@@ -38,6 +40,7 @@ DB_CONFIG = {
 }
 
 DB_CLIENT_ENCODING = "UTF8"
+APP_TIMEZONE = ZoneInfo(os.getenv("APP_TIMEZONE", "America/Guatemala"))
 
 
 def get_connection():
@@ -449,6 +452,13 @@ class AsignarCursoEstudiantesRequest(BaseModel):
     ciclo_escolar: int = 2026
 
 
+class AsistenciaRequest(BaseModel):
+    codigo_carnet: str
+    tipo: str
+    rol: str
+    codigo_usuario: str
+
+
 @app.get("/")
 def inicio():
     return {"mensaje": "API del Sistema de Punteos funcionando correctamente"}
@@ -764,6 +774,288 @@ def obtener_punteos(carrera, grado, curso, ciclo_escolar, codigo_docente, solo_d
             punteos.append(fila_limpia)
         return punteos
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
+    finally:
+        cerrar_conexion(cursor, conn)
+
+
+def obtener_fecha_hora_actual():
+    ahora = datetime.now(APP_TIMEZONE)
+    return ahora.date(), ahora.time().replace(microsecond=0)
+
+
+def validar_estudiante_para_docente(cursor, codigo_docente, id_alumno, ciclo_escolar):
+    cursor.execute(
+        """
+        SELECT 1
+        FROM asignaciones asi
+        INNER JOIN docentes_cursos dc
+                ON dc.id_carrera = asi.id_carrera
+               AND dc.id_grado = asi.id_grado
+               AND dc.id_ciclo = asi.id_ciclo
+               AND dc.estado = TRUE
+        INNER JOIN docentes d ON d.id_docente = dc.id_docente
+        WHERE asi.id_alumno = %s
+          AND asi.id_ciclo = (
+              SELECT id_ciclo FROM ciclos_escolares WHERE anio = %s
+          )
+          AND d.codigo_docente = %s
+          AND d.estado = TRUE
+        LIMIT 1;
+        """,
+        (id_alumno, ciclo_escolar, codigo_docente),
+    )
+    if not cursor.fetchone():
+        raise HTTPException(status_code=403, detail="Este estudiante no pertenece a un grupo asignado al docente")
+
+
+@app.post("/asistencias/registrar")
+def registrar_asistencia(data: AsistenciaRequest):
+    conn = None
+    cursor = None
+    try:
+        tipo = data.tipo.lower().strip()
+        rol = data.rol.lower().strip()
+        codigo_carnet = data.codigo_carnet.strip()
+        codigo_usuario = data.codigo_usuario.strip()
+
+        if tipo not in ("entrada", "salida"):
+            raise HTTPException(status_code=400, detail="Debe seleccionar entrada o salida")
+        if rol != "docente":
+            raise HTTPException(status_code=403, detail="Solo el docente puede registrar asistencia")
+        if not codigo_carnet:
+            raise HTTPException(status_code=400, detail="Debe enviar el código del carnet")
+
+        fecha_actual, hora_actual = obtener_fecha_hora_actual()
+        ciclo_actual = fecha_actual.year
+
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(
+            """
+            SELECT
+                a.id_alumno,
+                a.codigo_carnet,
+                a.nombres,
+                a.apellidos,
+                ca.nombre AS carrera,
+                gr.nombre AS grado,
+                ce.anio AS ciclo_escolar
+            FROM alumnos a
+            LEFT JOIN asignaciones asi ON asi.id_alumno = a.id_alumno
+            LEFT JOIN carreras ca ON ca.id_carrera = asi.id_carrera
+            LEFT JOIN grados gr ON gr.id_grado = asi.id_grado
+            LEFT JOIN ciclos_escolares ce ON ce.id_ciclo = asi.id_ciclo
+            WHERE a.codigo_carnet = %s
+              AND a.estado = TRUE
+            ORDER BY ce.anio DESC
+            LIMIT 1;
+            """,
+            (codigo_carnet,),
+        )
+        estudiante = cursor.fetchone()
+        if not estudiante:
+            raise HTTPException(status_code=404, detail=f"No se encontró estudiante con el carnet {codigo_carnet}")
+
+        ciclo_estudiante = estudiante["ciclo_escolar"] or ciclo_actual
+        if rol == "docente":
+            validar_estudiante_para_docente(cursor, codigo_usuario, estudiante["id_alumno"], ciclo_estudiante)
+
+        cursor.execute(
+            """
+            SELECT *
+            FROM asistencias
+            WHERE id_alumno = %s
+              AND fecha = %s;
+            """,
+            (estudiante["id_alumno"], fecha_actual),
+        )
+        asistencia = cursor.fetchone()
+
+        if tipo == "entrada":
+            if asistencia and asistencia["hora_entrada"]:
+                raise HTTPException(status_code=400, detail="Entrada ya registrada para este estudiante hoy")
+            if asistencia:
+                cursor.execute(
+                    """
+                    UPDATE asistencias
+                    SET hora_entrada = %s,
+                        registrado_por_rol = %s,
+                        registrado_por_codigo = %s,
+                        actualizado_en = NOW()
+                    WHERE id_asistencia = %s
+                    RETURNING *;
+                    """,
+                    (hora_actual, rol, codigo_usuario, asistencia["id_asistencia"]),
+                )
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO asistencias (
+                        id_alumno,
+                        fecha,
+                        hora_entrada,
+                        registrado_por_rol,
+                        registrado_por_codigo
+                    )
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING *;
+                    """,
+                    (estudiante["id_alumno"], fecha_actual, hora_actual, rol, codigo_usuario),
+                )
+        else:
+            if not asistencia or not asistencia["hora_entrada"]:
+                raise HTTPException(status_code=400, detail="No existe entrada registrada para este estudiante hoy")
+            if asistencia["hora_salida"]:
+                raise HTTPException(status_code=400, detail="Salida ya registrada para este estudiante hoy")
+            cursor.execute(
+                """
+                UPDATE asistencias
+                SET hora_salida = %s,
+                    registrado_por_rol = %s,
+                    registrado_por_codigo = %s,
+                    actualizado_en = NOW()
+                WHERE id_asistencia = %s
+                RETURNING *;
+                """,
+                (hora_actual, rol, codigo_usuario, asistencia["id_asistencia"]),
+            )
+
+        asistencia_guardada = cursor.fetchone()
+        conn.commit()
+        return {
+            "mensaje": "Asistencia registrada correctamente",
+            "accion": tipo,
+            "codigo_carnet": estudiante["codigo_carnet"],
+            "nombres": estudiante["nombres"],
+            "apellidos": estudiante["apellidos"],
+            "carrera": estudiante["carrera"],
+            "grado": estudiante["grado"],
+            "fecha": asistencia_guardada["fecha"].isoformat(),
+            "hora_entrada": str(asistencia_guardada["hora_entrada"]) if asistencia_guardada["hora_entrada"] else None,
+            "hora_salida": str(asistencia_guardada["hora_salida"]) if asistencia_guardada["hora_salida"] else None,
+        }
+    except HTTPException:
+        if conn:
+            conn.rollback()
+        raise
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
+    finally:
+        cerrar_conexion(cursor, conn)
+
+
+@app.get("/director/asistencias")
+def reporte_asistencias_director(
+    fecha_inicio: Optional[date] = Query(None),
+    fecha_fin: Optional[date] = Query(None),
+    carrera: Optional[str] = Query(None),
+    grado: Optional[str] = Query(None),
+    ciclo_escolar: Optional[int] = Query(None),
+):
+    return obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_escolar, None)
+
+
+@app.get("/docente/asistencias")
+def reporte_asistencias_docente(
+    codigo_docente: str,
+    fecha_inicio: Optional[date] = Query(None),
+    fecha_fin: Optional[date] = Query(None),
+    carrera: Optional[str] = Query(None),
+    grado: Optional[str] = Query(None),
+    ciclo_escolar: Optional[int] = Query(None),
+):
+    return obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_escolar, codigo_docente)
+
+
+def obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_escolar, codigo_docente):
+    conn = None
+    cursor = None
+    try:
+        hoy, _ = obtener_fecha_hora_actual()
+        fecha_inicio = fecha_inicio or hoy
+        fecha_fin = fecha_fin or fecha_inicio
+        if fecha_fin < fecha_inicio:
+            raise HTTPException(status_code=400, detail="La fecha final no puede ser menor que la fecha inicial")
+
+        condiciones = ["a.estado = TRUE"]
+        parametros = [fecha_inicio, fecha_fin]
+        if carrera:
+            condiciones.append("ca.nombre = %s")
+            parametros.append(carrera)
+        if grado:
+            condiciones.append("gr.nombre = %s")
+            parametros.append(grado)
+        if ciclo_escolar:
+            condiciones.append("ce.anio = %s")
+            parametros.append(ciclo_escolar)
+        if codigo_docente:
+            condiciones.append(
+                """
+                EXISTS (
+                    SELECT 1
+                    FROM docentes_cursos dc
+                    INNER JOIN docentes d ON d.id_docente = dc.id_docente
+                    WHERE dc.id_carrera = asi.id_carrera
+                      AND dc.id_grado = asi.id_grado
+                      AND dc.id_ciclo = asi.id_ciclo
+                      AND dc.estado = TRUE
+                      AND d.codigo_docente = %s
+                      AND d.estado = TRUE
+                )
+                """
+            )
+            parametros.append(codigo_docente)
+
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(
+            f"""
+            WITH fechas AS (
+                SELECT generate_series(%s::date, %s::date, interval '1 day')::date AS fecha
+            )
+            SELECT
+                f.fecha,
+                a.codigo_carnet,
+                a.nombres,
+                a.apellidos,
+                ca.nombre AS carrera,
+                gr.nombre AS grado,
+                ce.anio AS ciclo_escolar,
+                asi_reg.hora_entrada,
+                asi_reg.hora_salida,
+                CASE
+                    WHEN asi_reg.hora_entrada IS NOT NULL AND asi_reg.hora_salida IS NOT NULL THEN 'Completo'
+                    WHEN asi_reg.hora_entrada IS NOT NULL THEN 'Solo entrada'
+                    ELSE 'Ausente'
+                END AS estado
+            FROM alumnos a
+            INNER JOIN asignaciones asi ON asi.id_alumno = a.id_alumno
+            INNER JOIN carreras ca ON ca.id_carrera = asi.id_carrera
+            INNER JOIN grados gr ON gr.id_grado = asi.id_grado
+            INNER JOIN ciclos_escolares ce ON ce.id_ciclo = asi.id_ciclo
+            CROSS JOIN fechas f
+            LEFT JOIN asistencias asi_reg
+                   ON asi_reg.id_alumno = a.id_alumno
+                  AND asi_reg.fecha = f.fecha
+            WHERE {" AND ".join(condiciones)}
+            ORDER BY f.fecha DESC, ca.nombre, gr.numero, a.apellidos, a.nombres;
+            """,
+            parametros,
+        )
+        filas = []
+        for fila in cursor.fetchall():
+            item = limpiar_fila(fila)
+            item["fecha"] = fila["fecha"].isoformat()
+            item["hora_entrada"] = str(fila["hora_entrada"]) if fila["hora_entrada"] else None
+            item["hora_salida"] = str(fila["hora_salida"]) if fila["hora_salida"] else None
+            filas.append(item)
+        return filas
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
     finally:
