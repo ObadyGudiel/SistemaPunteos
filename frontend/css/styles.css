@@ -896,6 +896,44 @@ code {
   color: #1e3a8a;
 }
 
+.attendance-result-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.daily-reports {
+  margin: 18px 0;
+}
+
+.daily-reports h3 {
+  margin: 0 0 10px;
+  color: #10204a;
+  font-size: 18px;
+}
+
+.daily-report-list {
+  display: grid;
+  gap: 10px;
+}
+
+.daily-report-item {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(80px, auto) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #d8e0ee;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.daily-report-item span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .btn-small {
   border-radius: 8px;
   font-size: 13px;
@@ -1176,6 +1214,11 @@ code {
   }
 
   .attendance-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-result-actions,
+  .daily-report-item {
     grid-template-columns: 1fr;
   }
 

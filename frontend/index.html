@@ -278,17 +278,21 @@
           </div>
           <div class="attendance-report">
             <div class="form-grid">
-              <div class="form-group"><label>Desde</label><input id="directorAsistenciaDesde" type="date" /></div>
-              <div class="form-group"><label>Hasta</label><input id="directorAsistenciaHasta" type="date" /></div>
+              <div class="form-group"><label>Fecha del reporte</label><input id="directorAsistenciaDesde" type="date" /></div>
+              <input id="directorAsistenciaHasta" type="hidden" />
               <div class="form-group"><label>Carrera</label><select id="directorAsistenciaCarrera"></select></div>
               <div class="form-group"><label>Grado</label><select id="directorAsistenciaGrado"></select></div>
               <div class="form-group"><label>Ciclo escolar</label><select id="directorAsistenciaCiclo"></select></div>
             </div>
             <div class="action-row">
               <button class="btn-dark" onclick="cargarAsistencias('director')">Buscar</button>
-              <button class="btn-primary" onclick="descargarPdfAsistencia('director')">Descargar PDF</button>
+              <button class="btn-primary" onclick="descargarReporteDiario('director')">Descargar PDF del día</button>
             </div>
             <div id="mensajeDirectorAsistencia" class="message"></div>
+            <div class="daily-reports">
+              <h3>Reportes por día</h3>
+              <div id="directorReportesDiarios" class="daily-report-list"></div>
+            </div>
             <div class="table-wrapper">
               <table>
                 <thead>
@@ -406,24 +410,31 @@
                 <button class="btn-danger" onclick="detenerScannerAsistencia('docente')">Detener</button>
               </div>
               <div class="form-grid">
-                <div class="form-group"><label>Código de carnet</label><input id="docenteAsistenciaCodigo" type="text" placeholder="Ej. I136TLF" /></div>
+                <div class="form-group"><label>Código de carnet</label><input id="docenteAsistenciaCodigo" type="text" placeholder="Ej. I136TLF" oninput="registrarAsistenciaAuto('docente')" /></div>
               </div>
-              <button class="btn-dark" onclick="registrarAsistenciaManual('docente')">Registrar código</button>
               <div id="docenteAsistenciaResultado" class="attendance-result"></div>
+              <div id="docenteAsistenciaAcciones" class="attendance-result-actions hidden">
+                <button class="btn-dark" onclick="verReporteDiario('docente')">Ver reporte del día</button>
+                <button class="btn-primary" onclick="descargarReporteDiario('docente')">Descargar reporte del día</button>
+              </div>
             </div>
             <div class="attendance-report">
               <div class="form-grid">
-                <div class="form-group"><label>Desde</label><input id="docenteAsistenciaDesde" type="date" /></div>
-                <div class="form-group"><label>Hasta</label><input id="docenteAsistenciaHasta" type="date" /></div>
+                <div class="form-group"><label>Fecha del reporte</label><input id="docenteAsistenciaDesde" type="date" /></div>
+                <input id="docenteAsistenciaHasta" type="hidden" />
                 <div class="form-group"><label>Carrera</label><select id="docenteAsistenciaCarrera"></select></div>
                 <div class="form-group"><label>Grado</label><select id="docenteAsistenciaGrado"></select></div>
                 <div class="form-group"><label>Ciclo escolar</label><select id="docenteAsistenciaCiclo"></select></div>
               </div>
               <div class="action-row">
                 <button class="btn-dark" onclick="cargarAsistencias('docente')">Buscar</button>
-                <button class="btn-primary" onclick="descargarPdfAsistencia('docente')">Descargar PDF</button>
+                <button class="btn-primary" onclick="descargarReporteDiario('docente')">Descargar PDF del día</button>
               </div>
               <div id="mensajeDocenteAsistencia" class="message"></div>
+              <div class="daily-reports">
+                <h3>Reportes por día</h3>
+                <div id="docenteReportesDiarios" class="daily-report-list"></div>
+              </div>
               <div class="table-wrapper">
                 <table>
                   <thead>
@@ -472,8 +483,8 @@
     let catalogos = null;
     let estudiantesDirectorData = [];
     const asistenciaEstado = {
-      director: { modo: "entrada", stream: null, qrReader: null, detectorActivo: false, ultimoCodigo: "", ultimaLectura: 0, datos: [] },
-      docente: { modo: "entrada", stream: null, qrReader: null, detectorActivo: false, ultimoCodigo: "", ultimaLectura: 0, datos: [] }
+      director: { modo: "entrada", stream: null, qrReader: null, detectorActivo: false, ultimoCodigo: "", ultimaLectura: 0, datos: [], dias: [], fechaActual: "" },
+      docente: { modo: "entrada", stream: null, qrReader: null, detectorActivo: false, ultimoCodigo: "", ultimaLectura: 0, datos: [], dias: [], fechaActual: "", autoTimer: null, registrando: false }
     };
 
     async function api(path, options = {}) {
@@ -723,6 +734,7 @@
       const hasta = document.getElementById(`${panel}AsistenciaHasta`);
       if (desde && !desde.value) desde.value = hoy;
       if (hasta && !hasta.value) hasta.value = hoy;
+      asistenciaEstado[panel].fechaActual = hoy;
     }
 
     function seleccionarModoAsistencia(panel, modo) {
@@ -836,6 +848,17 @@
       await registrarAsistenciaCodigo(panel, codigo);
     }
 
+    function registrarAsistenciaAuto(panel) {
+      const estado = asistenciaEstado[panel];
+      clearTimeout(estado.autoTimer);
+      estado.autoTimer = setTimeout(async () => {
+        const input = document.getElementById(`${panel}AsistenciaCodigo`);
+        const codigo = input.value.trim();
+        if (codigo.length < 6 || estado.registrando) return;
+        await registrarAsistenciaCodigo(panel, codigo);
+      }, 650);
+    }
+
     async function registrarAsistenciaManual(panel) {
       const input = document.getElementById(`${panel}AsistenciaCodigo`);
       const codigo = input.value.trim();
@@ -849,6 +872,8 @@
 
     async function registrarAsistenciaCodigo(panel, codigo) {
       const estado = asistenciaEstado[panel];
+      if (estado.registrando) return;
+      estado.registrando = true;
       mostrarMensaje(obtenerMensajeAsistenciaId(panel), `Registrando ${estado.modo}...`, "info");
       try {
         const data = await api("/asistencias/registrar", {
@@ -861,12 +886,20 @@
             codigo_usuario: usuarioActual.codigo
           })
         });
-        mostrarResultadoAsistencia(panel, `${data.accion === "entrada" ? "Entrada" : "Salida"} registrada: ${data.apellidos}, ${data.nombres} (${data.codigo_carnet})`, "success");
+        asistenciaEstado[panel].fechaActual = data.fecha;
+        mostrarResultadoAsistencia(panel, `${data.accion === "entrada" ? "Entrada" : "Salida"} registrada: ${data.apellidos}, ${data.nombres}`, "success");
+        mostrarAccionesAsistencia(panel, true);
         mostrarMensaje(obtenerMensajeAsistenciaId(panel), "Asistencia registrada correctamente.", "success");
+        const input = document.getElementById(`${panel}AsistenciaCodigo`);
+        if (input) input.value = "";
         await cargarAsistencias(panel);
+        await cargarDiasAsistencia(panel);
       } catch (error) {
         mostrarResultadoAsistencia(panel, `${codigo}: ${error.message}`, "error");
+        mostrarAccionesAsistencia(panel, false);
         mostrarMensaje(obtenerMensajeAsistenciaId(panel), error.message, "error");
+      } finally {
+        estado.registrando = false;
       }
     }
 
@@ -874,6 +907,11 @@
       const div = document.getElementById(`${panel}AsistenciaResultado`);
       div.textContent = texto;
       div.className = `attendance-result ${tipo || ""}`;
+    }
+
+    function mostrarAccionesAsistencia(panel, mostrar) {
+      const acciones = document.getElementById(`${panel}AsistenciaAcciones`);
+      if (acciones) acciones.classList.toggle("hidden", !mostrar);
     }
 
     async function cargarAsistencias(panel) {
@@ -884,7 +922,7 @@
 
       const params = new URLSearchParams();
       const desde = document.getElementById(`${panel}AsistenciaDesde`)?.value;
-      const hasta = document.getElementById(`${panel}AsistenciaHasta`)?.value;
+      const hasta = desde;
       const carrera = document.getElementById(`${panel}AsistenciaCarrera`)?.value;
       const grado = document.getElementById(`${panel}AsistenciaGrado`)?.value;
       const ciclo = document.getElementById(`${panel}AsistenciaCiclo`)?.value;
@@ -922,12 +960,75 @@
           tbody.appendChild(tr);
         });
         mostrarMensaje(mensajeId, "Reporte de asistencia cargado correctamente.", "success");
+        await cargarDiasAsistencia(panel);
       } catch (error) {
         mostrarMensaje(mensajeId, error.message, "error");
       }
     }
 
-    function descargarPdfAsistencia(panel) {
+    async function cargarDiasAsistencia(panel) {
+      const lista = document.getElementById(panel === "director" ? "directorReportesDiarios" : "docenteReportesDiarios");
+      if (!lista) return;
+
+      const params = new URLSearchParams();
+      const carrera = document.getElementById(`${panel}AsistenciaCarrera`)?.value;
+      const grado = document.getElementById(`${panel}AsistenciaGrado`)?.value;
+      const ciclo = document.getElementById(`${panel}AsistenciaCiclo`)?.value;
+      if (carrera) params.append("carrera", carrera);
+      if (grado) params.append("grado", grado);
+      if (ciclo) params.append("ciclo_escolar", ciclo);
+      if (panel === "docente") params.append("codigo_docente", usuarioActual.codigo);
+
+      try {
+        const ruta = panel === "director" ? "/director/asistencias/dias" : "/docente/asistencias/dias";
+        const dias = await api(`${ruta}?${params.toString()}`);
+        asistenciaEstado[panel].dias = dias;
+        lista.innerHTML = "";
+        if (dias.length === 0) {
+          lista.innerHTML = '<span class="muted-text">Aún no hay reportes guardados.</span>';
+          return;
+        }
+        dias.forEach(dia => {
+          const item = document.createElement("div");
+          item.className = "daily-report-item";
+          item.innerHTML = `
+            <strong>${escapar(formatearFecha(dia.fecha))}</strong>
+            <span>${escapar(dia.total_registros)} registros</span>
+            <button class="btn-small btn-dark" onclick="verReporteDiario('${panel}', '${escapar(dia.fecha)}')">Ver</button>
+            <button class="btn-small btn-primary" onclick="descargarReporteDiario('${panel}', '${escapar(dia.fecha)}')">Descargar</button>`;
+          lista.appendChild(item);
+        });
+      } catch (error) {
+        lista.innerHTML = `<span class="muted-text">${escapar(error.message)}</span>`;
+      }
+    }
+
+    async function verReporteDiario(panel, fecha = null) {
+      const fechaReporte = fecha || asistenciaEstado[panel].fechaActual || new Date().toISOString().slice(0, 10);
+      const desde = document.getElementById(`${panel}AsistenciaDesde`);
+      const hasta = document.getElementById(`${panel}AsistenciaHasta`);
+      if (desde) desde.value = fechaReporte;
+      if (hasta) hasta.value = fechaReporte;
+      asistenciaEstado[panel].fechaActual = fechaReporte;
+      await cargarAsistencias(panel);
+      document.getElementById(panel === "director" ? "tablaDirectorAsistencia" : "tablaDocenteAsistencia")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function descargarReporteDiario(panel, fecha = null) {
+      const fechaReporte = fecha || asistenciaEstado[panel].fechaActual || new Date().toISOString().slice(0, 10);
+      const desde = document.getElementById(`${panel}AsistenciaDesde`);
+      const hasta = document.getElementById(`${panel}AsistenciaHasta`);
+      const valorDesde = desde?.value;
+      const valorHasta = hasta?.value;
+      if (desde) desde.value = fechaReporte;
+      if (hasta) hasta.value = fechaReporte;
+      await cargarAsistencias(panel);
+      descargarPdfAsistencia(panel, fechaReporte);
+      if (desde && valorDesde) desde.value = valorDesde;
+      if (hasta && valorHasta) hasta.value = valorHasta;
+    }
+
+    function descargarPdfAsistencia(panel, fechaReporte = null) {
       const datos = ordenarAsistencias(asistenciaEstado[panel].datos || []);
       const mensajeId = obtenerMensajeAsistenciaId(panel);
       if (datos.length === 0) {
@@ -938,12 +1039,16 @@
       const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }));
       const enlace = document.createElement("a");
       enlace.href = url;
-      enlace.download = `reporte-asistencia-${new Date().toISOString().slice(0, 10)}.pdf`;
+      enlace.download = `reporte-asistencia-${fechaReporte || obtenerFechaReporteActual(panel)}.pdf`;
       document.body.appendChild(enlace);
       enlace.click();
       enlace.remove();
       URL.revokeObjectURL(url);
       mostrarMensaje(mensajeId, "PDF de asistencia generado correctamente.", "success");
+    }
+
+    function obtenerFechaReporteActual(panel) {
+      return document.getElementById(`${panel}AsistenciaDesde`)?.value || new Date().toISOString().slice(0, 10);
     }
 
     function ordenarAsistencias(datos) {

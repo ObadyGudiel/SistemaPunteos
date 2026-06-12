@@ -1042,6 +1042,15 @@ def reporte_asistencias_director(
     return obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_escolar, None)
 
 
+@app.get("/director/asistencias/dias")
+def dias_asistencias_director(
+    carrera: Optional[str] = Query(None),
+    grado: Optional[str] = Query(None),
+    ciclo_escolar: Optional[int] = Query(None),
+):
+    return obtener_dias_asistencias(carrera, grado, ciclo_escolar, None)
+
+
 @app.get("/docente/asistencias")
 def reporte_asistencias_docente(
     codigo_docente: str,
@@ -1052,6 +1061,84 @@ def reporte_asistencias_docente(
     ciclo_escolar: Optional[int] = Query(None),
 ):
     return obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_escolar, codigo_docente)
+
+
+@app.get("/docente/asistencias/dias")
+def dias_asistencias_docente(
+    codigo_docente: str,
+    carrera: Optional[str] = Query(None),
+    grado: Optional[str] = Query(None),
+    ciclo_escolar: Optional[int] = Query(None),
+):
+    return obtener_dias_asistencias(carrera, grado, ciclo_escolar, codigo_docente)
+
+
+def obtener_dias_asistencias(carrera, grado, ciclo_escolar, codigo_docente):
+    conn = None
+    cursor = None
+    try:
+        condiciones = ["a.estado = TRUE"]
+        parametros = []
+        if carrera:
+            condiciones.append("ca.nombre = %s")
+            parametros.append(carrera)
+        if grado:
+            condiciones.append("gr.nombre = %s")
+            parametros.append(grado)
+        if ciclo_escolar:
+            condiciones.append("ce.anio = %s")
+            parametros.append(ciclo_escolar)
+        if codigo_docente:
+            condiciones.append(
+                """
+                EXISTS (
+                    SELECT 1
+                    FROM docentes_cursos dc
+                    INNER JOIN docentes d ON d.id_docente = dc.id_docente
+                    WHERE dc.id_carrera = asi.id_carrera
+                      AND dc.id_grado = asi.id_grado
+                      AND dc.id_ciclo = asi.id_ciclo
+                      AND dc.estado = TRUE
+                      AND d.codigo_docente = %s
+                      AND d.estado = TRUE
+                )
+                """
+            )
+            parametros.append(codigo_docente)
+
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        asegurar_tabla_asistencias(cursor)
+        cursor.execute(
+            f"""
+            SELECT
+                asi_reg.fecha,
+                COUNT(DISTINCT a.id_alumno) AS total_registros
+            FROM asistencias asi_reg
+            INNER JOIN alumnos a
+                    ON a.id_alumno = asi_reg.id_alumno
+                    OR UPPER(a.codigo_carnet) = UPPER(asi_reg.codigo_carnet)
+            LEFT JOIN asignaciones asi ON asi.id_alumno = a.id_alumno
+            LEFT JOIN carreras ca ON ca.id_carrera = asi.id_carrera
+            LEFT JOIN grados gr ON gr.id_grado = asi.id_grado
+            LEFT JOIN ciclos_escolares ce ON ce.id_ciclo = asi.id_ciclo
+            WHERE {" AND ".join(condiciones)}
+            GROUP BY asi_reg.fecha
+            ORDER BY asi_reg.fecha DESC;
+            """,
+            parametros,
+        )
+        return [
+            {
+                "fecha": fila["fecha"].isoformat(),
+                "total_registros": int(fila["total_registros"] or 0),
+            }
+            for fila in cursor.fetchall()
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
+    finally:
+        cerrar_conexion(cursor, conn)
 
 
 def obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_escolar, codigo_docente):
