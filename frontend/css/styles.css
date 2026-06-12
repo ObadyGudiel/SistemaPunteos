@@ -733,6 +733,28 @@ code {
   text-align: left;
 }
 
+.muted-text {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.course-list {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 6px;
+  line-height: 1.3;
+}
+
+.course-list li {
+  padding-left: 4px;
+}
+
+.course-list li::marker {
+  color: var(--teal);
+  font-weight: 900;
+}
+
 .btn-small {
   border-radius: 8px;
   font-size: 13px;

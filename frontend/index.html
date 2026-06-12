@@ -750,10 +750,35 @@
           <td>${escapar(row.codigo_docente)}</td>
           <td>${escapar(row.nombre_completo)}</td>
           <td><code>${escapar(row.password_temporal || "")}</code></td>
-          <td class="text-left">${escapar(row.cursos_asignados || "Sin cursos")}</td>
+          <td class="text-left">${formatearCursosAsignados(row.cursos_asignados)}</td>
           <td>${row.estado ? "Activo" : "Inactivo"}</td>`;
         tbody.appendChild(tr);
       });
+    }
+
+    function formatearCursosAsignados(cursosAsignados) {
+      const cursos = String(cursosAsignados || "")
+        .split(", ")
+        .map(curso => curso.trim())
+        .filter(Boolean)
+        .sort((a, b) => {
+          const grado = obtenerOrdenCursoAsignado(a) - obtenerOrdenCursoAsignado(b);
+          if (grado !== 0) return grado;
+          return a.localeCompare(b, "es", { sensitivity: "base" });
+        });
+
+      if (cursos.length === 0) {
+        return '<span class="muted-text">Sin cursos</span>';
+      }
+
+      return `<ol class="course-list">${cursos.map(curso => `<li>${escapar(curso)}</li>`).join("")}</ol>`;
+    }
+
+    function obtenerOrdenCursoAsignado(curso) {
+      const texto = normalizarTexto(curso);
+      const gradoEncontrado = texto.match(/\b(cuarto|quinto|sexto|4to|5to|6to|4|5|6)\b/);
+      if (!gradoEncontrado) return 99;
+      return obtenerOrdenGrado(gradoEncontrado[1]);
     }
 
     async function crearDocente() {
