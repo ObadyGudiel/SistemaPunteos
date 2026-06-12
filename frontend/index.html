@@ -748,7 +748,7 @@
           empty.classList.add("hidden");
           await reader.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 220, height: 220 } },
+            { fps: 10, qrbox: calcularTamanoQrbox },
             codigo => procesarCodigoEscaneado(panel, codigo)
           );
           mostrarMensaje(mensajeId, "Cámara activa. Acerque el carnet al recuadro.", "info");
@@ -797,6 +797,12 @@
       const empty = document.getElementById(`${panel}ScannerEmpty`);
       if (video) video.srcObject = null;
       if (empty) empty.classList.remove("hidden");
+    }
+
+    function calcularTamanoQrbox(viewfinderWidth, viewfinderHeight) {
+      const menorLado = Math.min(viewfinderWidth, viewfinderHeight);
+      const tamano = Math.max(150, Math.min(240, Math.floor(menorLado * 0.68)));
+      return { width: tamano, height: tamano };
     }
 
     async function detectarQrAsistencia(panel) {

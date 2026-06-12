@@ -785,6 +785,37 @@ def obtener_fecha_hora_actual():
     return ahora.date(), ahora.time().replace(microsecond=0)
 
 
+def asegurar_tabla_asistencias(cursor):
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS asistencias (
+            id_asistencia SERIAL PRIMARY KEY,
+            id_alumno INTEGER NOT NULL REFERENCES alumnos(id_alumno),
+            fecha DATE NOT NULL,
+            hora_entrada TIME,
+            hora_salida TIME,
+            registrado_por_rol VARCHAR(20) CHECK (registrado_por_rol IN ('docente')),
+            registrado_por_codigo VARCHAR(100),
+            creado_en TIMESTAMP NOT NULL DEFAULT NOW(),
+            actualizado_en TIMESTAMP NOT NULL DEFAULT NOW(),
+            UNIQUE (id_alumno, fecha)
+        );
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_asistencias_fecha
+            ON asistencias (fecha);
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_asistencias_alumno_fecha
+            ON asistencias (id_alumno, fecha);
+        """
+    )
+
+
 def validar_estudiante_para_docente(cursor, codigo_docente, id_alumno, ciclo_escolar):
     cursor.execute(
         """
@@ -832,6 +863,7 @@ def registrar_asistencia(data: AsistenciaRequest):
 
         conn = get_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        asegurar_tabla_asistencias(cursor)
         cursor.execute(
             """
             SELECT
@@ -1012,6 +1044,7 @@ def obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_e
 
         conn = get_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        asegurar_tabla_asistencias(cursor)
         cursor.execute(
             f"""
             WITH fechas AS (
