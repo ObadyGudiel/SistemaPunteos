@@ -43,33 +43,80 @@
       <div class="login-avatar">
         <img src="img/icon-usuario-azul.png?v=20260601-7" alt="Icono de usuario" />
       </div>
-      <h2>Iniciar sesión</h2>
+      <h2 id="loginTitulo">Iniciar sesión</h2>
 
-      <div class="form-group">
-        <label for="rolLogin">Rol</label>
-        <select id="rolLogin">
-          <option value="director">Director</option>
-          <option value="docente">Docente</option>
-          <option value="estudiante">Estudiante</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="usuarioLogin">Usuario</label>
-        <input type="text" id="usuarioLogin" placeholder="Ingrese su usuario" />
-      </div>
-
-      <div class="form-group">
-        <label for="passwordLogin">Contraseña</label>
-        <div class="password-field">
-          <input type="password" id="passwordLogin" placeholder="Ingrese su contraseña" />
-          <button type="button" class="password-toggle" onclick="alternarPasswordLogin()">Ver</button>
+      <div id="loginForm">
+        <div class="form-group">
+          <label for="rolLogin">Rol</label>
+          <select id="rolLogin">
+            <option value="director">Director</option>
+            <option value="docente">Docente</option>
+            <option value="estudiante">Estudiante</option>
+          </select>
         </div>
+
+        <div class="form-group">
+          <label for="usuarioLogin">Usuario</label>
+          <input type="text" id="usuarioLogin" placeholder="Ingrese su usuario" />
+        </div>
+
+        <div class="form-group">
+          <label for="passwordLogin">Contraseña</label>
+          <div class="password-field">
+            <input type="password" id="passwordLogin" placeholder="Ingrese su contraseña" />
+            <button type="button" class="password-toggle" onclick="alternarPasswordCampo('passwordLogin', this)">Ver</button>
+          </div>
+        </div>
+
+        <button class="btn-primary btn-full" onclick="iniciarSesion()">Entrar al sistema</button>
+        <button type="button" class="login-link-button" onclick="mostrarFormularioPasswordLogin()">Cambiar contraseña</button>
+        <p class="login-note">Acceso autorizado únicamente para usuarios registrados.</p>
+        <div id="mensajeLogin" class="message"></div>
       </div>
 
-      <button class="btn-primary btn-full" onclick="iniciarSesion()">Entrar al sistema</button>
-      <p class="login-note">Acceso autorizado únicamente para usuarios registrados.</p>
-      <div id="mensajeLogin" class="message"></div>
+      <div id="passwordLoginForm" class="hidden">
+        <div class="form-group">
+          <label for="rolPasswordLogin">Rol</label>
+          <select id="rolPasswordLogin">
+            <option value="director">Director</option>
+            <option value="docente">Docente</option>
+            <option value="estudiante">Estudiante</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="usuarioPasswordLogin">Usuario</label>
+          <input type="text" id="usuarioPasswordLogin" placeholder="Ingrese su usuario" />
+        </div>
+
+        <div class="form-group">
+          <label for="passwordActualLogin">Contraseña actual</label>
+          <div class="password-field">
+            <input type="password" id="passwordActualLogin" placeholder="Ingrese su contraseña actual" />
+            <button type="button" class="password-toggle" onclick="alternarPasswordCampo('passwordActualLogin', this)">Ver</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="passwordNuevaLogin">Nueva contraseña</label>
+          <div class="password-field">
+            <input type="password" id="passwordNuevaLogin" placeholder="Mínimo 6 caracteres" />
+            <button type="button" class="password-toggle" onclick="alternarPasswordCampo('passwordNuevaLogin', this)">Ver</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="passwordConfirmarLogin">Confirmar contraseña</label>
+          <div class="password-field">
+            <input type="password" id="passwordConfirmarLogin" placeholder="Repita la nueva contraseña" />
+            <button type="button" class="password-toggle" onclick="alternarPasswordCampo('passwordConfirmarLogin', this)">Ver</button>
+          </div>
+        </div>
+
+        <button class="btn-primary btn-full" onclick="cambiarPasswordDesdeLogin()">Guardar contraseña</button>
+        <button type="button" class="login-link-button" onclick="mostrarFormularioLogin()">Volver al inicio de sesión</button>
+        <div id="mensajePasswordLogin" class="message"></div>
+      </div>
     </div>
   </div>
 
@@ -232,7 +279,6 @@
             <button id="docBtnInsertar" onclick="mostrarSeccionDocente('insertar')">Registrar punteo</button>
             <button id="docBtnImportar" onclick="mostrarSeccionDocente('importar')">Subir Excel</button>
             <button id="docBtnAsignar" onclick="mostrarSeccionDocente('asignar')">Asignar curso</button>
-            <button id="docBtnPassword" onclick="mostrarSeccionDocente('password')">Cambiar contraseña</button>
           </div>
         </div>
 
@@ -307,16 +353,6 @@
           <div id="mensajeDocAsignar" class="message"></div>
         </div>
 
-        <div id="docPassword" class="card docente-section hidden password-card">
-          <h2>Cambiar contraseña</h2>
-          <div class="form-grid">
-            <div class="form-group"><label>Contraseña actual</label><div class="password-field"><input id="docPasswordActual" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('docPasswordActual', this)">Ver</button></div></div>
-            <div class="form-group"><label>Nueva contraseña</label><div class="password-field"><input id="docPasswordNueva" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('docPasswordNueva', this)">Ver</button></div></div>
-            <div class="form-group"><label>Confirmar contraseña</label><div class="password-field"><input id="docPasswordConfirmar" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('docPasswordConfirmar', this)">Ver</button></div></div>
-          </div>
-          <button class="btn-primary" onclick="cambiarPassword('docente')">Guardar contraseña</button>
-          <div id="mensajeDocPassword" class="message"></div>
-        </div>
       </div>
 
       <div id="panelEstudiante" class="hidden">
@@ -340,16 +376,6 @@
               <tbody id="tablaEstudiante"></tbody>
             </table>
           </div>
-        </div>
-        <div class="card password-card">
-          <h2>Cambiar contraseña</h2>
-          <div class="form-grid">
-            <div class="form-group"><label>Contraseña actual</label><div class="password-field"><input id="estPasswordActual" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('estPasswordActual', this)">Ver</button></div></div>
-            <div class="form-group"><label>Nueva contraseña</label><div class="password-field"><input id="estPasswordNueva" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('estPasswordNueva', this)">Ver</button></div></div>
-            <div class="form-group"><label>Confirmar contraseña</label><div class="password-field"><input id="estPasswordConfirmar" type="password" /><button type="button" class="password-toggle" onclick="alternarPasswordCampo('estPasswordConfirmar', this)">Ver</button></div></div>
-          </div>
-          <button class="btn-primary" onclick="cambiarPassword('estudiante')">Guardar contraseña</button>
-          <div id="mensajeEstPassword" class="message"></div>
         </div>
       </div>
     </div>
@@ -389,6 +415,78 @@
         await cargarPanelUsuario(data);
       } catch (error) {
         mostrarMensaje("mensajeLogin", error.message, "error");
+      }
+    }
+
+    function mostrarFormularioPasswordLogin() {
+      document.getElementById("loginTitulo").textContent = "Cambiar contraseña";
+      document.getElementById("loginForm").classList.add("hidden");
+      document.getElementById("passwordLoginForm").classList.remove("hidden");
+      document.getElementById("rolPasswordLogin").value = document.getElementById("rolLogin").value;
+      document.getElementById("usuarioPasswordLogin").value = document.getElementById("usuarioLogin").value.trim();
+      mostrarMensaje("mensajeLogin", "", "");
+      mostrarMensaje("mensajePasswordLogin", "", "");
+    }
+
+    function mostrarFormularioLogin() {
+      document.getElementById("loginTitulo").textContent = "Iniciar sesión";
+      document.getElementById("passwordLoginForm").classList.add("hidden");
+      document.getElementById("loginForm").classList.remove("hidden");
+      mostrarMensaje("mensajePasswordLogin", "", "");
+    }
+
+    function limpiarFormularioPasswordLogin() {
+      ["passwordActualLogin", "passwordNuevaLogin", "passwordConfirmarLogin"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      document.querySelectorAll("#passwordLoginForm .password-field input").forEach(input => {
+        input.type = "password";
+      });
+      document.querySelectorAll("#passwordLoginForm .password-toggle").forEach(boton => {
+        boton.textContent = "Ver";
+      });
+    }
+
+    async function cambiarPasswordDesdeLogin() {
+      const rol = document.getElementById("rolPasswordLogin").value;
+      const usuario = document.getElementById("usuarioPasswordLogin").value.trim();
+      const actual = document.getElementById("passwordActualLogin").value;
+      const nueva = document.getElementById("passwordNuevaLogin").value.trim();
+      const confirmar = document.getElementById("passwordConfirmarLogin").value.trim();
+
+      if (!usuario || !actual || !nueva || !confirmar) {
+        mostrarMensaje("mensajePasswordLogin", "Complete todos los campos para cambiar la contraseña.", "error");
+        return;
+      }
+      if (nueva.length < 6) {
+        mostrarMensaje("mensajePasswordLogin", "La nueva contraseña debe tener al menos 6 caracteres.", "error");
+        return;
+      }
+      if (nueva !== confirmar) {
+        mostrarMensaje("mensajePasswordLogin", "La confirmación no coincide con la nueva contraseña.", "error");
+        return;
+      }
+
+      mostrarMensaje("mensajePasswordLogin", "Actualizando contraseña...", "info");
+      try {
+        await api("/usuarios/cambiar-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rol,
+            usuario,
+            password_actual: actual,
+            password_nueva: nueva,
+            password_confirmar: confirmar
+          })
+        });
+        document.getElementById("rolLogin").value = rol;
+        document.getElementById("usuarioLogin").value = usuario;
+        document.getElementById("passwordLogin").value = "";
+        limpiarFormularioPasswordLogin();
+        mostrarMensaje("mensajePasswordLogin", "Contraseña actualizada correctamente. Ya puede iniciar sesión con su nueva contraseña.", "success");
+      } catch (error) {
+        mostrarMensaje("mensajePasswordLogin", error.message, "error");
       }
     }
 
@@ -433,6 +531,7 @@
       ocultarPaneles();
       document.getElementById("usuarioLogin").value = "";
       document.getElementById("passwordLogin").value = "";
+      mostrarFormularioLogin();
       mostrarMensaje("mensajeLogin", "", "");
     }
 
@@ -498,14 +597,6 @@
 
     function capitalizar(texto) {
       return texto.charAt(0).toUpperCase() + texto.slice(1);
-    }
-
-    function alternarPasswordLogin() {
-      const input = document.getElementById("passwordLogin");
-      const boton = document.querySelector(".password-toggle");
-      const visible = input.type === "text";
-      input.type = visible ? "password" : "text";
-      boton.textContent = visible ? "Ver" : "Ocultar";
     }
 
     function alternarPasswordCampo(inputId, boton) {
@@ -906,46 +997,6 @@
         await cargarPunteosDocente();
       } catch (error) {
         mostrarMensaje("mensajeDocAsignar", error.message, "error");
-      }
-    }
-
-    async function cambiarPassword(rol) {
-      const prefijo = rol === "docente" ? "doc" : "est";
-      const mensajeId = rol === "docente" ? "mensajeDocPassword" : "mensajeEstPassword";
-      const actual = document.getElementById(`${prefijo}PasswordActual`).value;
-      const nueva = document.getElementById(`${prefijo}PasswordNueva`).value.trim();
-      const confirmar = document.getElementById(`${prefijo}PasswordConfirmar`).value.trim();
-
-      if (!actual || !nueva || !confirmar) {
-        mostrarMensaje(mensajeId, "Complete todos los campos de contraseña.", "error");
-        return;
-      }
-      if (nueva.length < 6) {
-        mostrarMensaje(mensajeId, "La nueva contraseña debe tener al menos 6 caracteres.", "error");
-        return;
-      }
-      if (nueva !== confirmar) {
-        mostrarMensaje(mensajeId, "La confirmación no coincide con la nueva contraseña.", "error");
-        return;
-      }
-
-      try {
-        await api("/usuarios/cambiar-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            rol,
-            usuario: usuarioActual.codigo,
-            password_actual: actual,
-            password_nueva: nueva
-          })
-        });
-        document.getElementById(`${prefijo}PasswordActual`).value = "";
-        document.getElementById(`${prefijo}PasswordNueva`).value = "";
-        document.getElementById(`${prefijo}PasswordConfirmar`).value = "";
-        mostrarMensaje(mensajeId, "Contraseña actualizada. Dirección verá la modificación en su panel.", "success");
-      } catch (error) {
-        mostrarMensaje(mensajeId, error.message, "error");
       }
     }
 

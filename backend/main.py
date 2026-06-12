@@ -297,6 +297,7 @@ class CambiarPasswordRequest(BaseModel):
     usuario: str
     password_actual: str
     password_nueva: str
+    password_confirmar: Optional[str] = None
 
 
 class NotaRequest(BaseModel):
@@ -456,10 +457,16 @@ def cambiar_password(data: CambiarPasswordRequest):
         usuario = data.usuario.strip()
         password_nueva = data.password_nueva.strip()
 
-        if rol not in ("docente", "estudiante"):
-            raise HTTPException(status_code=400, detail="Solo docentes y estudiantes pueden cambiar su contraseña")
+        if rol not in ("director", "docente", "estudiante"):
+            raise HTTPException(status_code=400, detail="Rol inválido. Debe ser director, docente o estudiante")
+        if not usuario:
+            raise HTTPException(status_code=400, detail="Debe ingresar el usuario")
+        if not data.password_actual:
+            raise HTTPException(status_code=400, detail="Debe ingresar la contraseña actual")
         if len(password_nueva) < 6:
             raise HTTPException(status_code=400, detail="La nueva contraseña debe tener al menos 6 caracteres")
+        if data.password_confirmar is not None and password_nueva != data.password_confirmar.strip():
+            raise HTTPException(status_code=400, detail="La confirmación no coincide con la nueva contraseña")
 
         conn = get_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -476,6 +483,8 @@ def cambiar_password(data: CambiarPasswordRequest):
         cuenta = cursor.fetchone()
         if not cuenta or not verificar_password(data.password_actual, cuenta["password_hash"]):
             raise HTTPException(status_code=401, detail="La contraseña actual no es correcta")
+        if verificar_password(password_nueva, cuenta["password_hash"]):
+            raise HTTPException(status_code=400, detail="La nueva contraseña debe ser diferente a la actual")
 
         cursor.execute(
             """
