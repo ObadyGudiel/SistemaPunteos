@@ -717,10 +717,10 @@
         <td>${escapar(row.curso)}</td>
         ${incluirDocente ? `<td>${escapar(row.docente || "Sin asignar")}</td>` : ""}
         <td>${escapar(row.ciclo_escolar)}</td>
-        <td>${formato(row.primer_bimestre)}</td>
-        <td>${formato(row.segundo_bimestre)}</td>
-        <td>${formato(row.tercer_bimestre)}</td>
-        <td>${formato(row.cuarto_bimestre)}</td>
+        <td>${crearPunteoConDetalle(row, "primer_bimestre", "1er Bimestre")}</td>
+        <td>${crearPunteoConDetalle(row, "segundo_bimestre", "2do Bimestre")}</td>
+        <td>${crearPunteoConDetalle(row, "tercer_bimestre", "3er Bimestre")}</td>
+        <td>${crearPunteoConDetalle(row, "cuarto_bimestre", "4to Bimestre")}</td>
         <td><strong>${formato(row.promedio_final)}</strong></td>
         <td class="${row.estado === "Aprobado" ? "aprobado" : "reprobado"}">
           ${escapar(row.estado)}
@@ -1246,10 +1246,10 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${escapar(curso.curso)}</td>
-            <td>${formato(curso.primer_bimestre)}</td>
-            <td>${formato(curso.segundo_bimestre)}</td>
-            <td>${formato(curso.tercer_bimestre)}</td>
-            <td>${formato(curso.cuarto_bimestre)}</td>
+            <td>${crearPunteoConDetalle(curso, "primer_bimestre", "1er Bimestre")}</td>
+            <td>${crearPunteoConDetalle(curso, "segundo_bimestre", "2do Bimestre")}</td>
+            <td>${crearPunteoConDetalle(curso, "tercer_bimestre", "3er Bimestre")}</td>
+            <td>${crearPunteoConDetalle(curso, "cuarto_bimestre", "4to Bimestre")}</td>
             <td><strong>${formato(curso.promedio_final)}</strong></td>
             <td class="${curso.estado === "Aprobado" ? "aprobado" : "reprobado"}">${escapar(curso.estado)}</td>`;
           tbody.appendChild(tr);
@@ -1278,6 +1278,25 @@
       if (valor === null || valor === undefined || valor === "") return "0";
       const numero = Number(valor);
       return isNaN(numero) ? valor : numero.toFixed(2);
+    }
+
+    function crearPunteoConDetalle(row, campo, etiqueta) {
+      const detalle = row.detalles_bimestres?.[campo];
+      const total = formato(row[campo]);
+      const actitudinal = detalle ? formato(detalle.actitudinal) : "Sin registro";
+      const zona = detalle ? formato(detalle.zona) : "Sin registro";
+      const examen = detalle ? formato(detalle.examen) : "Sin registro";
+
+      return `
+        <span class="score-tooltip" tabindex="0" aria-label="${escapar(etiqueta)}: actitudinal ${escapar(actitudinal)}, zona ${escapar(zona)}, examen ${escapar(examen)}">
+          <span class="score-value">${escapar(total)}</span>
+          <span class="score-detail" role="tooltip">
+            <strong>${escapar(etiqueta)}</strong>
+            <span>Actitudinal: ${escapar(actitudinal)}</span>
+            <span>Zona: ${escapar(zona)}</span>
+            <span>Examen: ${escapar(examen)}</span>
+          </span>
+        </span>`;
     }
 
     function obtenerOrdenGrado(grado) {

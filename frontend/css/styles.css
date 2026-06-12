@@ -589,6 +589,7 @@ button:hover {
 
 .table-wrapper {
   overflow-x: auto;
+  overflow-y: visible;
   margin-top: 16px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
@@ -612,10 +613,12 @@ th {
 }
 
 td {
+  position: relative;
   padding: 13px 12px;
   border-bottom: 1px solid #e5e7eb;
   text-align: center;
   font-size: 14px;
+  overflow: visible;
 }
 
 tbody tr:nth-child(even):not(.empty-row) {
@@ -759,6 +762,81 @@ code {
   border-radius: 8px;
   font-size: 13px;
   padding: 8px 10px;
+}
+
+.score-tooltip {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 64px;
+  cursor: help;
+  outline: none;
+}
+
+.score-value {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #123b7a;
+  font-weight: 900;
+  border: 1px solid #cfe0ff;
+}
+
+.score-tooltip:hover .score-value,
+.score-tooltip:focus .score-value,
+.score-tooltip:focus-within .score-value {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.score-detail {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 30;
+  min-width: 172px;
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #071b3f;
+  color: white;
+  box-shadow: 0 16px 34px rgba(2, 8, 23, 0.28);
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 6px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.score-detail::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 10px;
+  height: 10px;
+  background: #071b3f;
+  transform: translate(-50%, -5px) rotate(45deg);
+}
+
+.score-detail strong {
+  color: #bfdbfe;
+}
+
+.score-detail span {
+  white-space: nowrap;
+}
+
+.score-tooltip:hover .score-detail,
+.score-tooltip:focus .score-detail,
+.score-tooltip:focus-within .score-detail {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .empty-row:hover {

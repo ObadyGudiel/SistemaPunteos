@@ -70,6 +70,102 @@ def limpiar_fila(fila):
     return {clave: convertir_decimal(valor) for clave, valor in dict(fila).items()}
 
 
+def clave_detalle_nota(fila):
+    return (
+        fila["codigo_carnet"],
+        fila["carrera"],
+        fila["grado"],
+        fila["curso"],
+        fila["ciclo_escolar"],
+    )
+
+
+def obtener_detalles_notas(
+    cursor,
+    codigo_carnet=None,
+    carrera=None,
+    grado=None,
+    curso=None,
+    ciclo_escolar=None,
+    codigo_docente=None,
+):
+    condiciones = ["a.estado = TRUE"]
+    parametros = []
+
+    if codigo_carnet:
+        condiciones.append("a.codigo_carnet = %s")
+        parametros.append(codigo_carnet)
+    if carrera:
+        condiciones.append("ca.nombre = %s")
+        parametros.append(carrera)
+    if grado:
+        condiciones.append("gr.nombre = %s")
+        parametros.append(grado)
+    if curso:
+        condiciones.append("cu.nombre = %s")
+        parametros.append(curso)
+    if ciclo_escolar:
+        condiciones.append("ce.anio = %s")
+        parametros.append(ciclo_escolar)
+    if codigo_docente:
+        condiciones.append("d.codigo_docente = %s")
+        parametros.append(codigo_docente)
+
+    cursor.execute(
+        f"""
+        SELECT
+            a.codigo_carnet,
+            ca.nombre AS carrera,
+            gr.nombre AS grado,
+            cu.nombre AS curso,
+            ce.anio AS ciclo_escolar,
+            bi.numero AS bimestre_numero,
+            bi.nombre AS bimestre,
+            n.actitudinal,
+            n.zona,
+            n.examen
+        FROM notas n
+        INNER JOIN asignaciones asi ON asi.id_asignacion = n.id_asignacion
+        INNER JOIN alumnos a ON a.id_alumno = asi.id_alumno
+        INNER JOIN carreras ca ON ca.id_carrera = asi.id_carrera
+        INNER JOIN grados gr ON gr.id_grado = asi.id_grado
+        INNER JOIN ciclos_escolares ce ON ce.id_ciclo = asi.id_ciclo
+        INNER JOIN cursos cu ON cu.id_curso = n.id_curso
+        INNER JOIN bimestres bi ON bi.id_bimestre = n.id_bimestre
+        LEFT JOIN docentes_cursos dc
+               ON dc.id_carrera = ca.id_carrera
+              AND dc.id_grado = gr.id_grado
+              AND dc.id_curso = cu.id_curso
+              AND dc.id_ciclo = ce.id_ciclo
+              AND dc.estado = TRUE
+        LEFT JOIN docentes d ON d.id_docente = dc.id_docente
+        WHERE {" AND ".join(condiciones)}
+        ORDER BY ca.nombre, gr.numero, a.apellidos, a.nombres, cu.nombre, bi.numero;
+        """,
+        parametros,
+    )
+
+    campos_bimestre = {
+        1: "primer_bimestre",
+        2: "segundo_bimestre",
+        3: "tercer_bimestre",
+        4: "cuarto_bimestre",
+    }
+    detalles = {}
+    for fila in cursor.fetchall():
+        campo = campos_bimestre.get(fila["bimestre_numero"])
+        if not campo:
+            continue
+        llave = clave_detalle_nota(fila)
+        detalles.setdefault(llave, {})[campo] = {
+            "bimestre": fila["bimestre"],
+            "actitudinal": convertir_decimal(fila["actitudinal"]),
+            "zona": convertir_decimal(fila["zona"]),
+            "examen": convertir_decimal(fila["examen"]),
+        }
+    return detalles
+
+
 def normalizar_texto(texto):
     if texto is None:
         return ""
@@ -541,8 +637,10 @@ def obtener_estudiante(codigo_carnet: str):
             )
 
         estudiante = resultados[0]
+        detalles_notas = obtener_detalles_notas(cursor, codigo_carnet=codigo_carnet)
         cursos = []
         for fila in resultados:
+            detalles_bimestres = detalles_notas.get(clave_detalle_nota(fila), {})
             cursos.append(
                 {
                     "curso": fila["curso"],
@@ -550,6 +648,7 @@ def obtener_estudiante(codigo_carnet: str):
                     "segundo_bimestre": convertir_decimal(fila["segundo_bimestre"]),
                     "tercer_bimestre": convertir_decimal(fila["tercer_bimestre"]),
                     "cuarto_bimestre": convertir_decimal(fila["cuarto_bimestre"]),
+                    "detalles_bimestres": detalles_bimestres,
                     "promedio_final": convertir_decimal(fila["promedio_final"]),
                     "estado": fila["estado"],
                 }
@@ -649,7 +748,21 @@ def obtener_punteos(carrera, grado, curso, ciclo_escolar, codigo_docente, solo_d
             """,
             parametros,
         )
-        return [limpiar_fila(fila) for fila in cursor.fetchall()]
+        resultados = cursor.fetchall()
+        detalles_notas = obtener_detalles_notas(
+            cursor,
+            carrera=carrera,
+            grado=grado,
+            curso=curso,
+            ciclo_escolar=ciclo_escolar,
+            codigo_docente=codigo_docente or solo_docente,
+        )
+        punteos = []
+        for fila in resultados:
+            fila_limpia = limpiar_fila(fila)
+            fila_limpia["detalles_bimestres"] = detalles_notas.get(clave_detalle_nota(fila), {})
+            punteos.append(fila_limpia)
+        return punteos
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
