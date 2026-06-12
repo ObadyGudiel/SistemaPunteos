@@ -899,14 +899,15 @@
       try {
         const ruta = panel === "director" ? "/director/asistencias" : "/docente/asistencias";
         const data = await api(`${ruta}?${params.toString()}`);
-        asistenciaEstado[panel].datos = data;
+        const datosOrdenados = ordenarAsistencias(data);
+        asistenciaEstado[panel].datos = datosOrdenados;
         tbody.innerHTML = "";
-        if (data.length === 0) {
+        if (datosOrdenados.length === 0) {
           mostrarTablaVacia(tbody, 8, "No hay asistencia para mostrar", "Pruebe con otra fecha, grado o carrera.");
           mostrarMensaje(mensajeId, "No hay registros para mostrar.", "info");
           return;
         }
-        data.forEach(row => {
+        datosOrdenados.forEach(row => {
           const tr = document.createElement("tr");
           const estadoClase = row.estado === "Completo" ? "aprobado" : "reprobado";
           tr.innerHTML = `
@@ -927,7 +928,7 @@
     }
 
     function descargarPdfAsistencia(panel) {
-      const datos = asistenciaEstado[panel].datos || [];
+      const datos = ordenarAsistencias(asistenciaEstado[panel].datos || []);
       const mensajeId = obtenerMensajeAsistenciaId(panel);
       if (datos.length === 0) {
         mostrarMensaje(mensajeId, "No hay datos para descargar.", "info");
@@ -943,6 +944,27 @@
       enlace.remove();
       URL.revokeObjectURL(url);
       mostrarMensaje(mensajeId, "PDF de asistencia generado correctamente.", "success");
+    }
+
+    function ordenarAsistencias(datos) {
+      return [...datos].sort((a, b) => {
+        const fecha = String(b.fecha || "").localeCompare(String(a.fecha || ""));
+        if (fecha !== 0) return fecha;
+
+        const carrera = (a.carrera || "").localeCompare(b.carrera || "", "es", { sensitivity: "base" });
+        if (carrera !== 0) return carrera;
+
+        const grado = obtenerOrdenGrado(a.grado) - obtenerOrdenGrado(b.grado);
+        if (grado !== 0) return grado;
+
+        const apellido = (a.apellidos || "").localeCompare(b.apellidos || "", "es", { sensitivity: "base" });
+        if (apellido !== 0) return apellido;
+
+        const nombre = (a.nombres || "").localeCompare(b.nombres || "", "es", { sensitivity: "base" });
+        if (nombre !== 0) return nombre;
+
+        return (a.codigo_carnet || "").localeCompare(b.codigo_carnet || "", "es", { sensitivity: "base" });
+      });
     }
 
     function crearPdfAsistencia(filas, responsable) {

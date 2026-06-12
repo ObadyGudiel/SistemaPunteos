@@ -791,6 +791,7 @@ def asegurar_tabla_asistencias(cursor):
         CREATE TABLE IF NOT EXISTS asistencias (
             id_asistencia SERIAL PRIMARY KEY,
             id_alumno INTEGER NOT NULL REFERENCES alumnos(id_alumno),
+            codigo_carnet VARCHAR(100),
             fecha DATE NOT NULL,
             hora_entrada TIME,
             hora_salida TIME,
@@ -804,6 +805,21 @@ def asegurar_tabla_asistencias(cursor):
     )
     cursor.execute(
         """
+        ALTER TABLE asistencias
+        ADD COLUMN IF NOT EXISTS codigo_carnet VARCHAR(100);
+        """
+    )
+    cursor.execute(
+        """
+        UPDATE asistencias asi
+        SET codigo_carnet = a.codigo_carnet
+        FROM alumnos a
+        WHERE asi.id_alumno = a.id_alumno
+          AND (asi.codigo_carnet IS NULL OR asi.codigo_carnet = '');
+        """
+    )
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_asistencias_fecha
             ON asistencias (fecha);
         """
@@ -812,6 +828,12 @@ def asegurar_tabla_asistencias(cursor):
         """
         CREATE INDEX IF NOT EXISTS idx_asistencias_alumno_fecha
             ON asistencias (id_alumno, fecha);
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_asistencias_carnet_fecha
+            ON asistencias (codigo_carnet, fecha);
         """
     )
 
@@ -849,6 +871,7 @@ def registrar_asistencia(data: AsistenciaRequest):
         tipo = data.tipo.lower().strip()
         rol = data.rol.lower().strip()
         codigo_carnet = data.codigo_carnet.strip()
+        codigo_carnet_busqueda = codigo_carnet.upper()
         codigo_usuario = data.codigo_usuario.strip()
 
         if tipo not in ("entrada", "salida"):
@@ -879,12 +902,12 @@ def registrar_asistencia(data: AsistenciaRequest):
             LEFT JOIN carreras ca ON ca.id_carrera = asi.id_carrera
             LEFT JOIN grados gr ON gr.id_grado = asi.id_grado
             LEFT JOIN ciclos_escolares ce ON ce.id_ciclo = asi.id_ciclo
-            WHERE a.codigo_carnet = %s
+            WHERE UPPER(a.codigo_carnet) = %s
               AND a.estado = TRUE
             ORDER BY ce.anio DESC
             LIMIT 1;
             """,
-            (codigo_carnet,),
+            (codigo_carnet_busqueda,),
         )
         estudiante = cursor.fetchone()
         if not estudiante:
@@ -898,10 +921,19 @@ def registrar_asistencia(data: AsistenciaRequest):
             """
             SELECT *
             FROM asistencias
-            WHERE id_alumno = %s
-              AND fecha = %s;
+            WHERE (id_alumno = %s OR UPPER(codigo_carnet) = %s)
+              AND fecha = %s
+            ORDER BY
+                CASE WHEN id_alumno = %s THEN 0 ELSE 1 END,
+                id_asistencia DESC
+            LIMIT 1;
             """,
-            (estudiante["id_alumno"], fecha_actual),
+            (
+                estudiante["id_alumno"],
+                estudiante["codigo_carnet"].upper(),
+                fecha_actual,
+                estudiante["id_alumno"],
+            ),
         )
         asistencia = cursor.fetchone()
 
@@ -913,28 +945,38 @@ def registrar_asistencia(data: AsistenciaRequest):
                     """
                     UPDATE asistencias
                     SET hora_entrada = %s,
+                        id_alumno = %s,
+                        codigo_carnet = %s,
                         registrado_por_rol = %s,
                         registrado_por_codigo = %s,
                         actualizado_en = NOW()
                     WHERE id_asistencia = %s
                     RETURNING *;
                     """,
-                    (hora_actual, rol, codigo_usuario, asistencia["id_asistencia"]),
+                    (
+                        hora_actual,
+                        estudiante["id_alumno"],
+                        estudiante["codigo_carnet"],
+                        rol,
+                        codigo_usuario,
+                        asistencia["id_asistencia"],
+                    ),
                 )
             else:
                 cursor.execute(
                     """
                     INSERT INTO asistencias (
                         id_alumno,
+                        codigo_carnet,
                         fecha,
                         hora_entrada,
                         registrado_por_rol,
                         registrado_por_codigo
                     )
-                    VALUES (%s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     RETURNING *;
                     """,
-                    (estudiante["id_alumno"], fecha_actual, hora_actual, rol, codigo_usuario),
+                    (estudiante["id_alumno"], estudiante["codigo_carnet"], fecha_actual, hora_actual, rol, codigo_usuario),
                 )
         else:
             if not asistencia or not asistencia["hora_entrada"]:
@@ -945,13 +987,22 @@ def registrar_asistencia(data: AsistenciaRequest):
                 """
                 UPDATE asistencias
                 SET hora_salida = %s,
+                    id_alumno = %s,
+                    codigo_carnet = %s,
                     registrado_por_rol = %s,
                     registrado_por_codigo = %s,
                     actualizado_en = NOW()
                 WHERE id_asistencia = %s
                 RETURNING *;
                 """,
-                (hora_actual, rol, codigo_usuario, asistencia["id_asistencia"]),
+                (
+                    hora_actual,
+                    estudiante["id_alumno"],
+                    estudiante["codigo_carnet"],
+                    rol,
+                    codigo_usuario,
+                    asistencia["id_asistencia"],
+                ),
             )
 
         asistencia_guardada = cursor.fetchone()
@@ -1071,11 +1122,29 @@ def obtener_reporte_asistencias(fecha_inicio, fecha_fin, carrera, grado, ciclo_e
             INNER JOIN grados gr ON gr.id_grado = asi.id_grado
             INNER JOIN ciclos_escolares ce ON ce.id_ciclo = asi.id_ciclo
             CROSS JOIN fechas f
-            LEFT JOIN asistencias asi_reg
-                   ON asi_reg.id_alumno = a.id_alumno
-                  AND asi_reg.fecha = f.fecha
+            LEFT JOIN LATERAL (
+                SELECT
+                    asi_busqueda.hora_entrada,
+                    asi_busqueda.hora_salida
+                FROM asistencias asi_busqueda
+                WHERE asi_busqueda.fecha = f.fecha
+                  AND (
+                      asi_busqueda.id_alumno = a.id_alumno
+                      OR UPPER(asi_busqueda.codigo_carnet) = UPPER(a.codigo_carnet)
+                  )
+                ORDER BY
+                    CASE WHEN asi_busqueda.id_alumno = a.id_alumno THEN 0 ELSE 1 END,
+                    asi_busqueda.id_asistencia DESC
+                LIMIT 1
+            ) asi_reg ON TRUE
             WHERE {" AND ".join(condiciones)}
-            ORDER BY f.fecha DESC, ca.nombre, gr.numero, a.apellidos, a.nombres;
+            ORDER BY
+                f.fecha DESC,
+                ca.tipo,
+                ca.nombre,
+                gr.numero,
+                a.apellidos,
+                a.nombres;
             """,
             parametros,
         )

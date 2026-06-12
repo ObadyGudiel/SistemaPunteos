@@ -40,6 +40,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_cursos_por_grado_unico
 CREATE TABLE IF NOT EXISTS asistencias (
     id_asistencia SERIAL PRIMARY KEY,
     id_alumno INTEGER NOT NULL REFERENCES alumnos(id_alumno),
+    codigo_carnet VARCHAR(100),
     fecha DATE NOT NULL,
     hora_entrada TIME,
     hora_salida TIME,
@@ -55,6 +56,9 @@ CREATE INDEX IF NOT EXISTS idx_asistencias_fecha
 
 CREATE INDEX IF NOT EXISTS idx_asistencias_alumno_fecha
     ON asistencias (id_alumno, fecha);
+
+CREATE INDEX IF NOT EXISTS idx_asistencias_carnet_fecha
+    ON asistencias (codigo_carnet, fecha);
 
 -- Cuenta inicial del director.
 -- Usuario: director
