@@ -492,6 +492,7 @@
 
     async function cargarPanelUsuario(data) {
       usuarioActual = data;
+      document.body.classList.add("app-active");
       document.getElementById("loginView").classList.add("hidden");
       document.getElementById("appView").classList.remove("hidden");
       ocultarPaneles();
@@ -526,6 +527,7 @@
       localStorage.removeItem(SESION_KEY);
       usuarioActual = null;
       catalogosCargados = false;
+      document.body.classList.remove("app-active");
       document.getElementById("appView").classList.add("hidden");
       document.getElementById("loginView").classList.remove("hidden");
       ocultarPaneles();
@@ -606,6 +608,20 @@
       boton.textContent = visible ? "Ver" : "Ocultar";
     }
 
+    function mostrarTablaVacia(tbody, columnas, titulo = "No hay registros para mostrar", detalle = "Cuando exista información, aparecerá en esta tabla.") {
+      const tr = document.createElement("tr");
+      tr.className = "empty-row";
+      tr.innerHTML = `
+        <td colspan="${columnas}">
+          <div class="empty-state">
+            <img src="img/empty-state-academico.webp?v=20260611-1" alt="" />
+            <strong>${escapar(titulo)}</strong>
+            <span>${escapar(detalle)}</span>
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    }
+
     async function cargarPunteosDirector() {
       await cargarPunteos("/director/punteos", "tablaDirectorPunteos", "mensajeDirPunteos", {
         carrera: "dirFiltroCarrera",
@@ -649,6 +665,12 @@
     tbody.innerHTML = "";
 
     if (data.length === 0) {
+      mostrarTablaVacia(
+        tbody,
+        incluirDocente ? 13 : 12,
+        "No se encontraron punteos",
+        "Pruebe con otros filtros o registre información para este grupo."
+      );
       mostrarMensaje(mensajeId, "No hay registros para mostrar.", "info");
       return;
     }
@@ -718,6 +740,10 @@
       const data = await api("/director/docentes");
       const tbody = document.getElementById("tablaDocentes");
       tbody.innerHTML = "";
+      if (data.length === 0) {
+        mostrarTablaVacia(tbody, 5, "No hay docentes registrados", "Los docentes creados desde dirección aparecerán aquí.");
+        return;
+      }
       data.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -756,6 +782,10 @@
       tbody.innerHTML = "";
       const datosOrdenados = [...data].sort(compararPorCarreraGradoNombre);
       estudiantesDirectorData = datosOrdenados;
+      if (datosOrdenados.length === 0) {
+        mostrarTablaVacia(tbody, 6, "No hay estudiantes registrados", "Los estudiantes creados o importados aparecerán aquí.");
+        return;
+      }
       datosOrdenados.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -813,6 +843,10 @@
       const data = await api("/director/cursos");
       const tbody = document.getElementById("tablaCursos");
       tbody.innerHTML = "";
+      if (data.length === 0) {
+        mostrarTablaVacia(tbody, 2, "No hay cursos registrados", "Los cursos creados desde dirección aparecerán aquí.");
+        return;
+      }
       data.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `<td>${escapar(row.id_curso)}</td><td>${escapar(row.nombre)}</td>`;
@@ -844,6 +878,10 @@
       const data = await api("/director/asignaciones-docentes");
       const tbody = document.getElementById("tablaAsignaciones");
       tbody.innerHTML = "";
+      if (data.length === 0) {
+        mostrarTablaVacia(tbody, 7, "No hay asignaciones registradas", "Las asignaciones de cursos a docentes aparecerán aquí.");
+        return;
+      }
       data.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -1173,6 +1211,11 @@
         document.getElementById("estCiclo").textContent = data.ciclo_escolar;
         const tbody = document.getElementById("tablaEstudiante");
         tbody.innerHTML = "";
+        if (data.cursos.length === 0) {
+          mostrarTablaVacia(tbody, 7, "No hay punteos disponibles", "Cuando sus cursos tengan punteos registrados, aparecerán aquí.");
+          mostrarMensaje("mensajeEstudiante", "No hay punteos para mostrar.", "info");
+          return;
+        }
         data.cursos.forEach(curso => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
