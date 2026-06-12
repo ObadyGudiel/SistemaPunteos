@@ -898,7 +898,7 @@ code {
 
 .report-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
   margin: 8px 0 16px;
 }
