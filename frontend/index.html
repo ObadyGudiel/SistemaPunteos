@@ -631,6 +631,7 @@
       ["filtroCarrera", "insCarrera", "impCarrera", "docAsigCarrera", "estNewCarrera", "cursoCarrera", "asigCarrera"].forEach(id => llenarSelect(id, catalogos.carreras, "nombre", id === "filtroCarrera" ? "Todas las carreras" : "Seleccione carrera"));
       ["filtroGrado", "insGrado", "impGrado", "docAsigGrado", "estNewGrado", "cursoGrado", "asigGrado"].forEach(id => llenarSelect(id, catalogos.grados, "nombre", id === "filtroGrado" ? "Todos los grados" : "Seleccione grado"));
       ["filtroCurso", "insCurso", "impCurso", "docAsigCurso", "estNewCurso", "asigCurso"].forEach(id => llenarSelect(id, catalogos.cursos, "nombre", id === "filtroCurso" ? "Todos los cursos" : "Seleccione curso"));
+      ["insBimestre", "impBimestre"].forEach(id => llenarSelect(id, catalogos.bimestres, "nombre", "Seleccione bimestre"));
       ["filtroCiclo", "insCiclo", "impCiclo", "docAsigCiclo", "estNewCiclo", "asigCiclo"].forEach(id => llenarSelect(id, catalogos.ciclos, "anio", id === "filtroCiclo" ? "Todos los ciclos" : "Seleccione ciclo"));
       llenarSelectDocentes("asigDocente", catalogos.docentes, "Seleccione docente");
       catalogosCargados = true;
@@ -1895,6 +1896,5 @@
   </script>
 </body>
 </html>
-
 
 
