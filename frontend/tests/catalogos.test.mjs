@@ -22,6 +22,14 @@ test("el inicio de sesión muestra los logotipos sin el panel informativo", asyn
   assert.match(login, /src="img\/logo-diversificado\.png/);
 });
 
+test("los paneles muestran únicamente el nombre de cada rol", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /id="panelDirector"[\s\S]*?<h2>Director<\/h2>/);
+  assert.match(html, /id="panelDocente"[\s\S]*?<h2>Docente<\/h2>/);
+  assert.match(html, /id="panelEstudiante"[\s\S]*?<h2>Estudiante<\/h2>/);
+});
+
 class OpcionFalsa {
   constructor() {
     this.value = "";
