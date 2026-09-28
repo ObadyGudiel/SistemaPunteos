@@ -12,6 +12,16 @@ test("el inicio de sesión solicita el carnet", async () => {
   );
 });
 
+test("el inicio de sesión muestra los logotipos sin el panel informativo", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const login = html.match(/<div id="loginView"[\s\S]*?<div id="appView"/)?.[0] ?? "";
+
+  assert.doesNotMatch(login, /class="hero-card card"/);
+  assert.match(login, /class="login-brand-marks"/);
+  assert.match(login, /src="img\/logo-san-luis\.png/);
+  assert.match(login, /src="img\/logo-diversificado\.png/);
+});
+
 class OpcionFalsa {
   constructor() {
     this.value = "";

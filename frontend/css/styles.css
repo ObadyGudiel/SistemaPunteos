@@ -54,12 +54,11 @@ body.app-active {
 }
 
 .login-container {
-  width: min(92%, 1180px);
+  width: min(92%, 460px);
   min-height: 100vh;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
-  gap: 28px;
+  display: flex;
+  justify-content: center;
   align-items: center;
   padding: 34px 0;
 }
@@ -271,36 +270,71 @@ h2 {
 }
 
 .login-card {
-  min-height: 560px;
+  width: 100%;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 42px;
+  padding: 18px 32px;
   background: rgba(255, 255, 255, 0.97);
   border-color: rgba(255, 255, 255, 0.86);
+  margin-bottom: 0;
 }
 
-.login-avatar {
-  width: 88px;
-  height: 88px;
-  margin: 0 auto 24px;
-  color: var(--blue);
-  background: white;
-  border: 1px solid #e2e8f0;
-  font-size: 32px;
-  padding: 18px;
+.login-brand-marks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 auto 10px;
 }
 
-.login-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.login-brand-marks .logo-frame,
+.login-brand-marks .school-logo {
+  width: 50px;
+  height: 50px;
+}
+
+.login-brand-marks .brand-divider {
+  height: 44px;
+  background: #cbd5e1;
 }
 
 .login-card h2 {
   text-align: center;
-  margin-bottom: 32px;
-  font-size: 32px;
+  margin-bottom: 12px;
+  font-size: 28px;
+}
+
+.login-card h2::after {
+  margin-top: 8px;
+}
+
+.login-card .form-group {
+  margin-bottom: 8px;
+}
+
+.login-card label {
+  margin-bottom: 5px;
+}
+
+.login-card input,
+.login-card select {
+  padding: 8px 12px;
+}
+
+.login-card .btn-full {
+  margin-top: 4px;
+  padding: 8px 16px;
+  font-size: 16px;
+}
+
+.login-card .login-link-button {
+  margin-top: 8px;
+}
+
+.login-card .login-note {
+  margin-top: 12px;
 }
 
 .login-card h2::after,
