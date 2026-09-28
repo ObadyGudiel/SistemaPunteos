@@ -3,6 +3,15 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
 
+test("el inicio de sesión solicita el carnet", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(
+    html,
+    /<input type="text" id="usuarioLogin" placeholder="Ingrese su carnet" \/>/,
+  );
+});
+
 class OpcionFalsa {
   constructor() {
     this.value = "";
