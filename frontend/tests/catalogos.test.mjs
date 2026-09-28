@@ -30,6 +30,13 @@ test("los paneles muestran únicamente el nombre de cada rol", async () => {
   assert.match(html, /id="panelEstudiante"[\s\S]*?<h2>Estudiante<\/h2>/);
 });
 
+test("el encabezado se desplaza junto con la página", async () => {
+  const css = await readFile(new URL("../css/styles.css", import.meta.url), "utf8");
+  const topbar = css.match(/\.topbar \{[\s\S]*?\n\}/)?.[0] ?? "";
+
+  assert.doesNotMatch(topbar, /position:\s*(sticky|fixed)/);
+});
+
 class OpcionFalsa {
   constructor() {
     this.value = "";
