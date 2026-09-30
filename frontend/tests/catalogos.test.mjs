@@ -37,6 +37,30 @@ test("el encabezado se desplaza junto con la página", async () => {
   assert.doesNotMatch(topbar, /position:\s*(sticky|fixed)/);
 });
 
+test("el menú móvil del director contiene sus accesos principales", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const funcion = html.match(
+    /function obtenerOpcionesMenuMovil\(rol\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    function actualizarMenuMovil)/,
+  )?.[0];
+
+  assert.ok(funcion, "No se encontró la función del menú móvil");
+
+  const contexto = {};
+  vm.createContext(contexto);
+  vm.runInContext(funcion, contexto);
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(contexto.obtenerOpcionesMenuMovil("director"))),
+    [
+      { etiqueta: "Inicio", seccion: "punteos" },
+      { etiqueta: "Docentes", seccion: "docentes" },
+      { etiqueta: "Estudiantes", seccion: "estudiantes" },
+      { etiqueta: "Cursos", seccion: "cursos" },
+      { etiqueta: "Asistencia", seccion: "asistencia" },
+    ],
+  );
+});
+
 class OpcionFalsa {
   constructor() {
     this.value = "";
@@ -57,10 +81,10 @@ function crearSelect() {
 test("cargarCatalogos llena los bimestres de ingreso e importación", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const cargarCatalogos = html.match(
-    /async function cargarCatalogos\(\) \{[\s\S]*?\n    \}(?=\n\n    function llenarSelect\()/,
+    /async function cargarCatalogos\(\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    function llenarSelect\()/,
   )?.[0];
   const llenarSelect = html.match(
-    /function llenarSelect\(id, datos, campo, textoInicial\) \{[\s\S]*?\n    \}(?=\n\n    function llenarSelectDocentes)/,
+    /function llenarSelect\(id, datos, campo, textoInicial\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    function llenarSelectDocentes)/,
   )?.[0];
   const codigo = [cargarCatalogos, llenarSelect].filter(Boolean).join("\n");
 

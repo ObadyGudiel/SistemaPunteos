@@ -99,6 +99,8 @@
 
   <div id="appView" class="hidden">
     <div class="topbar">
+      <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" onclick="alternarMenuMovil()">☰</button>
+      <span class="mobile-topbar-title">Sistema de punteos</span>
       <div class="school-brand">
         <div class="brand-marks topbar-marks">
           <div class="logo-frame">
@@ -114,6 +116,21 @@
         </div>
       </div>
       <button class="btn-danger" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+
+    <div id="mobileMenuOverlay" class="mobile-menu-overlay" onclick="cerrarMenuMovil()">
+      <aside id="mobileMenu" class="mobile-menu" aria-label="Menú de navegación" onclick="event.stopPropagation()">
+        <div class="mobile-menu-institution">
+          <div class="brand-marks mobile-menu-marks">
+            <div class="logo-frame"><img class="school-logo logo-san-luis" src="img/logo-san-luis.png?v=20260601-7" alt="Logo Instituto por Cooperativa San Luis" /></div>
+            <div class="logo-frame"><img class="school-logo logo-diversificado" src="img/logo-diversificado.png?v=20260601-7" alt="Logo Instituto Diversificado por Cooperativa San Luis" /></div>
+          </div>
+          <strong>Instituto San Luis</strong>
+          <span id="usuarioMenuMovil"></span>
+        </div>
+        <nav id="opcionesMenuMovil" class="mobile-menu-options" aria-label="Opciones del menú"></nav>
+        <button class="btn-danger mobile-menu-logout" type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+      </aside>
     </div>
 
     <div class="container">
@@ -552,6 +569,7 @@
       document.getElementById("loginView").classList.add("hidden");
       document.getElementById("appView").classList.remove("hidden");
       ocultarPaneles();
+      actualizarMenuMovil(data);
 
       if (data.rol === "director") {
         document.getElementById("usuarioActual").textContent = `Director: ${data.nombre_completo} | Usuario: ${data.codigo}`;
@@ -582,6 +600,7 @@
     }
 
     function cerrarSesion() {
+      cerrarMenuMovil();
       localStorage.removeItem(SESION_KEY);
       usuarioActual = null;
       catalogosCargados = false;
@@ -593,6 +612,58 @@
       document.getElementById("passwordLogin").value = "";
       mostrarFormularioLogin();
       mostrarMensaje("mensajeLogin", "", "");
+    }
+
+    function obtenerOpcionesMenuMovil(rol) {
+      if (rol === "director") {
+        return [
+          { etiqueta: "Inicio", seccion: "punteos" },
+          { etiqueta: "Docentes", seccion: "docentes" },
+          { etiqueta: "Estudiantes", seccion: "estudiantes" },
+          { etiqueta: "Cursos", seccion: "cursos" },
+          { etiqueta: "Asistencia", seccion: "asistencia" },
+        ];
+      }
+      if (rol === "docente") {
+        return [
+          { etiqueta: "Mis punteos", seccion: "ver" },
+          { etiqueta: "Registrar punteo", seccion: "insertar" },
+          { etiqueta: "Subir Excel", seccion: "importar" },
+          { etiqueta: "Asignar curso", seccion: "asignar" },
+          { etiqueta: "Asistencia", seccion: "asistencia" },
+        ];
+      }
+      return [{ etiqueta: "Mis punteos", seccion: "punteos" }];
+    }
+
+    function actualizarMenuMovil(data) {
+      const nombre = data.nombre_completo || `${data.nombres || ""} ${data.apellidos || ""}`.trim();
+      const rol = data.rol === "director" ? "Director" : data.rol === "docente" ? "Docente" : "Estudiante";
+      document.getElementById("usuarioMenuMovil").textContent = `${rol}: ${nombre} | Usuario: ${data.codigo}`;
+      document.getElementById("opcionesMenuMovil").innerHTML = obtenerOpcionesMenuMovil(data.rol)
+        .map(opcion => `<button type="button" onclick="navegarMenuMovil('${data.rol}', '${opcion.seccion}')">${opcion.etiqueta}</button>`)
+        .join("");
+    }
+
+    function alternarMenuMovil() {
+      const menu = document.getElementById("mobileMenuOverlay");
+      const boton = document.getElementById("mobileMenuToggle");
+      const abierto = menu.classList.toggle("open");
+      boton.setAttribute("aria-expanded", String(abierto));
+    }
+
+    function cerrarMenuMovil() {
+      const menu = document.getElementById("mobileMenuOverlay");
+      const boton = document.getElementById("mobileMenuToggle");
+      if (!menu || !boton) return;
+      menu.classList.remove("open");
+      boton.setAttribute("aria-expanded", "false");
+    }
+
+    function navegarMenuMovil(rol, seccion) {
+      if (rol === "director") mostrarSeccionDirector(seccion);
+      if (rol === "docente") mostrarSeccionDocente(seccion);
+      cerrarMenuMovil();
     }
 
     async function cargarCatalogos() {

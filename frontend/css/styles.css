@@ -534,6 +534,12 @@ button:hover {
   color: #e2e8f0;
 }
 
+.mobile-menu-toggle,
+.mobile-topbar-title,
+.mobile-menu-overlay {
+  display: none;
+}
+
 .panel-shell,
 .student-hero {
   display: grid;
@@ -1318,5 +1324,144 @@ code {
 
   .pill-icon {
     margin: 0 auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .topbar {
+    min-height: 58px;
+    padding: 10px 16px;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .topbar .school-brand,
+  .topbar > .btn-danger {
+    display: none;
+  }
+
+  .mobile-menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: white;
+    font-size: 29px;
+    line-height: 1;
+    box-shadow: none;
+  }
+
+  .mobile-menu-toggle:hover,
+  .mobile-menu-toggle:focus-visible {
+    background: rgba(255, 255, 255, 0.14);
+    transform: none;
+  }
+
+  .mobile-topbar-title {
+    display: block;
+    margin: 0;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .mobile-menu-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    visibility: hidden;
+    background: rgba(2, 12, 28, 0.58);
+    opacity: 0;
+    transition: opacity 180ms ease, visibility 180ms ease;
+  }
+
+  .mobile-menu-overlay.open {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .mobile-menu {
+    display: flex;
+    flex-direction: column;
+    width: min(84vw, 360px);
+    height: 100%;
+    padding: 28px 22px 20px;
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: 14px 0 35px rgba(2, 12, 28, 0.24);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+  }
+
+  .mobile-menu-overlay.open .mobile-menu {
+    transform: translateX(0);
+  }
+
+  .mobile-menu-institution {
+    padding-bottom: 22px;
+    border-bottom: 1px solid #dbe5f1;
+  }
+
+  .mobile-menu-marks {
+    justify-content: flex-start;
+    gap: 9px;
+    margin: 0 0 16px;
+  }
+
+  .mobile-menu .logo-frame,
+  .mobile-menu .school-logo {
+    width: 58px;
+    height: 58px;
+  }
+
+  .mobile-menu-institution strong {
+    display: block;
+    color: #0b2c55;
+    font-size: 25px;
+    line-height: 1.15;
+  }
+
+  .mobile-menu-institution span {
+    display: block;
+    margin-top: 10px;
+    color: #435a78;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .mobile-menu-options {
+    display: grid;
+    margin-top: 14px;
+  }
+
+  .mobile-menu-options button {
+    width: 100%;
+    padding: 16px 4px;
+    border: 0;
+    border-bottom: 1px solid #e3eaf3;
+    border-radius: 0;
+    background: transparent;
+    color: #10204a;
+    text-align: left;
+    font-size: 17px;
+    font-weight: 700;
+    box-shadow: none;
+  }
+
+  .mobile-menu-options button:hover,
+  .mobile-menu-options button:focus-visible {
+    background: #eef5ff;
+    color: var(--blue-2);
+    transform: none;
+  }
+
+  .mobile-menu-logout {
+    width: 100%;
+    margin-top: auto;
   }
 }
