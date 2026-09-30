@@ -1437,6 +1437,44 @@ code {
     line-height: 1.45;
   }
 
+  .mobile-student-details {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #f4f8fc;
+  }
+
+  .mobile-student-details > strong {
+    color: #0b2c55;
+    font-size: 16px;
+  }
+
+  .mobile-student-details div {
+    display: grid;
+    gap: 3px;
+    padding: 9px 0;
+    border-bottom: 1px solid #dbe5f1;
+  }
+
+  .mobile-student-details div:last-child {
+    border-bottom: 0;
+  }
+
+  .mobile-student-details span {
+    margin: 0;
+    color: #63758f;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .mobile-student-details b {
+    color: #10204a;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
   .mobile-menu-options {
     display: grid;
     margin-top: 14px;
@@ -1469,6 +1507,10 @@ code {
   }
 
   .panel-shell {
+    display: none;
+  }
+
+  .student-hero {
     display: none;
   }
 }

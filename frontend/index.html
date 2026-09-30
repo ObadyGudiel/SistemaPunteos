@@ -128,6 +128,14 @@
           <strong>Instituto San Luis</strong>
           <span id="usuarioMenuMovil"></span>
         </div>
+        <section id="datosEstudianteMenuMovil" class="mobile-student-details hidden" aria-label="Información del estudiante">
+          <strong>Información del estudiante</strong>
+          <div><span>Carnet</span><b id="menuEstCodigo"></b></div>
+          <div><span>Nombre completo</span><b id="menuEstNombre"></b></div>
+          <div><span>Carrera</span><b id="menuEstCarrera"></b></div>
+          <div><span>Grado</span><b id="menuEstGrado"></b></div>
+          <div><span>Ciclo escolar</span><b id="menuEstCiclo"></b></div>
+        </section>
         <nav id="opcionesMenuMovil" class="mobile-menu-options" aria-label="Opciones del menú"></nav>
         <button class="btn-danger mobile-menu-logout" type="button" onclick="cerrarSesion()">Cerrar sesión</button>
       </aside>
@@ -640,6 +648,7 @@
       const nombre = data.nombre_completo || `${data.nombres || ""} ${data.apellidos || ""}`.trim();
       const rol = data.rol === "director" ? "Director" : data.rol === "docente" ? "Docente" : "Estudiante";
       document.getElementById("usuarioMenuMovil").textContent = `${rol}: ${nombre} | Usuario: ${data.codigo}`;
+      document.getElementById("datosEstudianteMenuMovil").classList.add("hidden");
       document.getElementById("opcionesMenuMovil").innerHTML = obtenerOpcionesMenuMovil(data.rol)
         .map(opcion => `<button type="button" onclick="navegarMenuMovil('${data.rol}', '${opcion.seccion}')">${opcion.etiqueta}</button>`)
         .join("");
@@ -1818,6 +1827,15 @@
       return true;
     }
 
+    function actualizarDatosEstudianteMenuMovil(data) {
+      document.getElementById("menuEstCodigo").textContent = data.codigo_carnet;
+      document.getElementById("menuEstNombre").textContent = `${data.apellidos}, ${data.nombres}`;
+      document.getElementById("menuEstCarrera").textContent = data.carrera;
+      document.getElementById("menuEstGrado").textContent = data.grado;
+      document.getElementById("menuEstCiclo").textContent = String(data.ciclo_escolar);
+      document.getElementById("datosEstudianteMenuMovil")?.classList.remove("hidden");
+    }
+
     async function cargarDatosEstudiante(codigoCarnet) {
       mostrarMensaje("mensajeEstudiante", "Cargando punteos...", "info");
       try {
@@ -1827,6 +1845,7 @@
         document.getElementById("estCarrera").textContent = data.carrera;
         document.getElementById("estGrado").textContent = data.grado;
         document.getElementById("estCiclo").textContent = data.ciclo_escolar;
+        actualizarDatosEstudianteMenuMovil(data);
         const tbody = document.getElementById("tablaEstudiante");
         tbody.innerHTML = "";
         if (data.cursos.length === 0) {

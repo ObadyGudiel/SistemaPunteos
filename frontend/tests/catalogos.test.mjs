@@ -48,6 +48,7 @@ test("en teléfono se oculta la tarjeta duplicada de navegación", async () => {
   const estilosMoviles = css.slice(css.indexOf("@media (max-width: 680px)"));
 
   assert.match(estilosMoviles, /\.panel-shell\s*\{\s*display:\s*none;/);
+  assert.match(estilosMoviles, /\.student-hero\s*\{\s*display:\s*none;/);
 });
 
 test("el menú móvil del director contiene sus accesos principales", async () => {
@@ -71,6 +72,35 @@ test("el menú móvil del director contiene sus accesos principales", async () =
       { etiqueta: "Cursos", seccion: "cursos" },
       { etiqueta: "Asistencia", seccion: "asistencia" },
     ],
+  );
+});
+
+test("el menú móvil del estudiante muestra sus datos académicos", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const funcion = html.match(
+    /function actualizarDatosEstudianteMenuMovil\(data\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    async function cargarDatosEstudiante)/,
+  )?.[0];
+
+  assert.ok(funcion, "No se encontró la función para mostrar los datos del estudiante en el menú móvil");
+
+  const elementos = new Map(
+    ["menuEstCodigo", "menuEstNombre", "menuEstCarrera", "menuEstGrado", "menuEstCiclo"].map(id => [id, { textContent: "" }]),
+  );
+  const contexto = { document: { getElementById: id => elementos.get(id) } };
+  vm.createContext(contexto);
+  vm.runInContext(funcion, contexto);
+  contexto.actualizarDatosEstudianteMenuMovil({
+    codigo_carnet: "F654UWE",
+    apellidos: "LÓPEZ TICÚN",
+    nombres: "WILSON GEOVANNY",
+    carrera: "Perito en Electrónica y Dispositivos",
+    grado: "Quinto",
+    ciclo_escolar: 2026,
+  });
+
+  assert.deepEqual(
+    [...elementos.values()].map(elemento => elemento.textContent),
+    ["F654UWE", "LÓPEZ TICÚN, WILSON GEOVANNY", "Perito en Electrónica y Dispositivos", "Quinto", "2026"],
   );
 });
 
