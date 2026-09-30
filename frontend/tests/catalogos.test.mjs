@@ -121,7 +121,7 @@ test("el menú móvil del estudiante muestra sus datos académicos", async () =>
   );
 });
 
-test("el estudiante no recibe una confirmación redundante al cargar punteos", async () => {
+test("el estudiante carga sus punteos sin mensajes de estado redundantes", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(
     /async function cargarDatosEstudiante\(codigoCarnet\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    function mostrarMensaje)/,
@@ -162,7 +162,7 @@ test("el estudiante no recibe una confirmación redundante al cargar punteos", a
   vm.runInContext(funcion, contexto);
   await contexto.cargarDatosEstudiante("F654UWE");
 
-  assert.deepEqual(mensajes, [["mensajeEstudiante", "Cargando punteos...", "info"]]);
+  assert.deepEqual(mensajes, []);
 });
 
 class OpcionFalsa {

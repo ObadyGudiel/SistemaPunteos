@@ -1837,7 +1837,6 @@
     }
 
     async function cargarDatosEstudiante(codigoCarnet) {
-      mostrarMensaje("mensajeEstudiante", "Cargando punteos...", "info");
       try {
         const data = await api(`/estudiantes/${encodeURIComponent(codigoCarnet)}`);
         document.getElementById("estCodigo").textContent = data.codigo_carnet;
