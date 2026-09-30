@@ -1865,7 +1865,6 @@
             <td class="${curso.estado === "Aprobado" ? "aprobado" : "reprobado"}">${escapar(curso.estado)}</td>`;
           tbody.appendChild(tr);
         });
-        mostrarMensaje("mensajeEstudiante", "Punteos cargados correctamente.", "success");
       } catch (error) {
         mostrarMensaje("mensajeEstudiante", error.message, "error");
       }

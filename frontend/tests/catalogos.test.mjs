@@ -104,6 +104,50 @@ test("el menú móvil del estudiante muestra sus datos académicos", async () =>
   );
 });
 
+test("el estudiante no recibe una confirmación redundante al cargar punteos", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const funcion = html.match(
+    /async function cargarDatosEstudiante\(codigoCarnet\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    function mostrarMensaje)/,
+  )?.[0];
+
+  assert.ok(funcion, "No se encontró la carga de punteos del estudiante");
+
+  const mensajes = [];
+  const elementos = new Map([
+    ["estCodigo", { textContent: "" }],
+    ["estNombre", { textContent: "" }],
+    ["estCarrera", { textContent: "" }],
+    ["estGrado", { textContent: "" }],
+    ["estCiclo", { textContent: "" }],
+    ["tablaEstudiante", { innerHTML: "", appendChild() {} }],
+  ]);
+  const contexto = {
+    api: async () => ({
+      codigo_carnet: "F654UWE",
+      apellidos: "LÓPEZ TICÚN",
+      nombres: "WILSON GEOVANNY",
+      carrera: "Electrónica",
+      grado: "Quinto",
+      ciclo_escolar: 2026,
+      cursos: [{ curso: "Matemática", bimestre_1: 80, bimestre_2: 80, bimestre_3: 80, bimestre_4: 80, promedio_final: 80, estado: "Aprobado" }],
+    }),
+    actualizarDatosEstudianteMenuMovil() {},
+    crearPunteoConDetalle: () => ({}),
+    mostrarMensaje: (...mensaje) => mensajes.push(mensaje),
+    formato: valor => String(valor),
+    escapar: valor => String(valor),
+    document: {
+      getElementById: id => elementos.get(id),
+      createElement: () => ({}),
+    },
+  };
+  vm.createContext(contexto);
+  vm.runInContext(funcion, contexto);
+  await contexto.cargarDatosEstudiante("F654UWE");
+
+  assert.deepEqual(mensajes, [["mensajeEstudiante", "Cargando punteos...", "info"]]);
+});
+
 class OpcionFalsa {
   constructor() {
     this.value = "";
