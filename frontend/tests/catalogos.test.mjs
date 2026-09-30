@@ -75,6 +75,23 @@ test("el menú móvil del director contiene sus accesos principales", async () =
   );
 });
 
+test("el menú móvil de docente inicia en Inicio y el estudiante no tiene acceso duplicado", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const funcion = html.match(
+    /function obtenerOpcionesMenuMovil\(rol\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    function actualizarMenuMovil)/,
+  )?.[0];
+
+  assert.ok(funcion, "No se encontró la función del menú móvil");
+
+  const contexto = {};
+  vm.createContext(contexto);
+  vm.runInContext(funcion, contexto);
+
+  assert.equal(contexto.obtenerOpcionesMenuMovil("docente")[0].etiqueta, "Inicio");
+  assert.deepEqual(JSON.parse(JSON.stringify(contexto.obtenerOpcionesMenuMovil("estudiante"))), []);
+  assert.match(html, /id="docVer"[\s\S]*?<h2>Registro de punteos<\/h2>/);
+});
+
 test("el menú móvil del estudiante muestra sus datos académicos", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(

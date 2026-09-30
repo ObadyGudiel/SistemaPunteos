@@ -312,7 +312,7 @@
 
         <div id="docVer" class="card docente-section">
           <div class="section-title">
-            <h2>Mis punteos</h2>
+            <h2>Registro de punteos</h2>
             <button class="btn-primary" onclick="cargarPunteosDocente()">Actualizar</button>
           </div>
           <div class="form-grid">
@@ -634,14 +634,14 @@
       }
       if (rol === "docente") {
         return [
-          { etiqueta: "Mis punteos", seccion: "ver" },
+          { etiqueta: "Inicio", seccion: "ver" },
           { etiqueta: "Registrar punteo", seccion: "insertar" },
           { etiqueta: "Subir Excel", seccion: "importar" },
           { etiqueta: "Asignar curso", seccion: "asignar" },
           { etiqueta: "Asistencia", seccion: "asistencia" },
         ];
       }
-      return [{ etiqueta: "Mis punteos", seccion: "punteos" }];
+      return [];
     }
 
     function actualizarMenuMovil(data) {
