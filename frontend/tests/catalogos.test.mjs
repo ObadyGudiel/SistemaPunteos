@@ -37,6 +37,13 @@ test("el encabezado se desplaza junto con la página", async () => {
   assert.doesNotMatch(topbar, /position:\s*(sticky|fixed)/);
 });
 
+test("en teléfono se oculta la tarjeta duplicada de navegación", async () => {
+  const css = await readFile(new URL("../css/styles.css", import.meta.url), "utf8");
+  const estilosMoviles = css.slice(css.indexOf("@media (max-width: 680px)"));
+
+  assert.match(estilosMoviles, /\.panel-shell\s*\{\s*display:\s*none;/);
+});
+
 test("el menú móvil del director contiene sus accesos principales", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(

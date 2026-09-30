@@ -1464,4 +1464,8 @@ code {
     width: 100%;
     margin-top: auto;
   }
+
+  .panel-shell {
+    display: none;
+  }
 }
