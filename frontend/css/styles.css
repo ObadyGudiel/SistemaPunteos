@@ -535,8 +535,11 @@ button:hover {
 }
 
 .mobile-menu-toggle,
-.mobile-topbar-title,
 .mobile-menu-overlay {
+  display: none;
+}
+
+.topbar .mobile-topbar-title {
   display: none;
 }
 
@@ -1361,7 +1364,7 @@ code {
     transform: none;
   }
 
-  .mobile-topbar-title {
+  .topbar .mobile-topbar-title {
     display: block;
     margin: 0;
     color: white;
