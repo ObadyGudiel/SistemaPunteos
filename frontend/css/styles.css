@@ -1391,6 +1391,7 @@ code {
   .mobile-menu {
     display: flex;
     flex-direction: column;
+    position: relative;
     width: min(84vw, 360px);
     height: 100%;
     padding: 28px 22px 20px;
@@ -1399,6 +1400,27 @@ code {
     box-shadow: 14px 0 35px rgba(2, 12, 28, 0.24);
     transform: translateX(-100%);
     transition: transform 180ms ease;
+  }
+
+  .mobile-menu-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 42px;
+    min-height: 42px;
+    padding: 0;
+    border-radius: 50%;
+    background: #eef4ff;
+    color: #0b4ed8;
+    font-size: 28px;
+    line-height: 1;
+    box-shadow: none;
+  }
+
+  .mobile-menu-close:hover,
+  .mobile-menu-close:focus-visible {
+    background: #dbeafe;
+    transform: none;
   }
 
   .mobile-menu-overlay.open .mobile-menu {
@@ -1480,6 +1502,10 @@ code {
     margin-top: 14px;
   }
 
+  .mobile-menu-options:empty {
+    display: none;
+  }
+
   .mobile-menu-options button {
     width: 100%;
     padding: 16px 4px;
@@ -1503,7 +1529,7 @@ code {
 
   .mobile-menu-logout {
     width: 100%;
-    margin-top: auto;
+    margin-top: 16px;
   }
 
   .panel-shell {

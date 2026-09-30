@@ -92,6 +92,16 @@ test("el menú móvil de docente inicia en Inicio y el estudiante no tiene acces
   assert.match(html, /id="docVer"[\s\S]*?<h2>Registro de punteos<\/h2>/);
 });
 
+test("el menú móvil tiene flecha de cierre y salida junto a las opciones", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const css = await readFile(new URL("../css/styles.css", import.meta.url), "utf8");
+  const estilosMoviles = css.slice(css.indexOf("@media (max-width: 680px)"));
+
+  assert.match(html, /class="mobile-menu-close"[\s\S]*?aria-label="Cerrar menú"[\s\S]*?onclick="cerrarMenuMovil\(\)"/);
+  assert.match(estilosMoviles, /\.mobile-menu-close\s*\{/);
+  assert.doesNotMatch(estilosMoviles, /\.mobile-menu-logout\s*\{\s*width:\s*100%;\s*margin-top:\s*auto;/);
+});
+
 test("el menú móvil del estudiante muestra sus datos académicos", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(
