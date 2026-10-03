@@ -153,6 +153,42 @@ test("la tabla de estudiantes muestra la contraseña junto al carnet", async () 
   );
 });
 
+test("las credenciales del PDF separan cada grado y carrera en páginas distintas", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const funcion = html.match(
+    /function agruparPaginasCredenciales\(filas, filasPorPagina\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    function crearPdfCredenciales)/,
+  )?.[0];
+
+  assert.ok(funcion, "No se encontró el agrupamiento de credenciales del PDF");
+
+  const contexto = {};
+  vm.createContext(contexto);
+  vm.runInContext(funcion, contexto);
+  const paginas = contexto.agruparPaginasCredenciales([
+    { carnet: "A1", grado: "Sexto", carrera: "Perito Contador" },
+    { carnet: "A2", grado: "Sexto", carrera: "Perito Contador" },
+    { carnet: "B1", grado: "Quinto", carrera: "Bachillerato" },
+  ], 1);
+
+  assert.deepEqual(JSON.parse(JSON.stringify(paginas)), [
+    {
+      grado: "Sexto",
+      carrera: "Perito Contador",
+      filas: [{ carnet: "A1", grado: "Sexto", carrera: "Perito Contador" }],
+    },
+    {
+      grado: "Sexto",
+      carrera: "Perito Contador",
+      filas: [{ carnet: "A2", grado: "Sexto", carrera: "Perito Contador" }],
+    },
+    {
+      grado: "Quinto",
+      carrera: "Bachillerato",
+      filas: [{ carnet: "B1", grado: "Quinto", carrera: "Bachillerato" }],
+    },
+  ]);
+});
+
 test("el menú móvil del estudiante muestra sus datos académicos", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(

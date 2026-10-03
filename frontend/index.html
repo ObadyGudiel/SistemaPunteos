@@ -1693,7 +1693,9 @@
         const filas = estudiantesDirectorData.map(row => ({
           carnet: row.codigo_carnet || "",
           nombre: `${row.apellidos || ""}, ${row.nombres || ""}`.trim(),
-          password: row.password_temporal || ""
+          password: row.password_temporal || "",
+          grado: row.grado || "Sin grado asignado",
+          carrera: row.carrera || "Sin carrera asignada"
         }));
 
         const pdfBytes = crearPdfCredenciales(filas);
@@ -1711,6 +1713,32 @@
       }
     }
 
+    function agruparPaginasCredenciales(filas, filasPorPagina) {
+      const grupos = new Map();
+
+      filas.forEach(fila => {
+        const grado = fila.grado || "Sin grado asignado";
+        const carrera = fila.carrera || "Sin carrera asignada";
+        const clave = `${grado}\u0000${carrera}`;
+        if (!grupos.has(clave)) {
+          grupos.set(clave, { grado, carrera, filas: [] });
+        }
+        grupos.get(clave).filas.push(fila);
+      });
+
+      const paginas = [];
+      grupos.forEach(grupo => {
+        for (let i = 0; i < grupo.filas.length; i += filasPorPagina) {
+          paginas.push({
+            grado: grupo.grado,
+            carrera: grupo.carrera,
+            filas: grupo.filas.slice(i, i + filasPorPagina)
+          });
+        }
+      });
+      return paginas;
+    }
+
     function crearPdfCredenciales(filas) {
       const ancho = 612;
       const alto = 792;
@@ -1718,12 +1746,9 @@
       const inicioY = 718;
       const altoFila = 21;
       const filasPorPagina = 28;
-      const paginas = [];
+      const paginas = agruparPaginasCredenciales(filas, filasPorPagina);
       const encoder = new TextEncoder();
-
-      for (let i = 0; i < filas.length; i += filasPorPagina) {
-        paginas.push(filas.slice(i, i + filasPorPagina));
-      }
+      const fechaGeneracion = new Date().toLocaleDateString("es-GT");
 
       const objetos = [];
       const idsPaginas = [];
@@ -1739,8 +1764,8 @@
         lineas.push(`0 ${alto - 92} ${ancho} 92 re f`);
         lineas.push("1 1 1 rg");
         escribirTexto(lineas, "F2", 17, margenX, 748, "Instituto Básico y Diversificado por Cooperativa Aldea San Luis");
-        escribirTexto(lineas, "F1", 11, margenX, 728, "Listado de credenciales de estudiantes");
-        escribirTexto(lineas, "F1", 9, margenX, 708, `Generado: ${new Date().toLocaleDateString("es-GT")}   Página ${indicePagina + 1} de ${paginas.length}`);
+        escribirTexto(lineas, "F1", 11, margenX, 728, `Listado de credenciales — ${limitarTexto(pagina.grado, 45)}`);
+        escribirTexto(lineas, "F1", 9, margenX, 708, `Carrera: ${limitarTexto(pagina.carrera, 75)}`);
 
         lineas.push("0.10 0.32 0.82 rg");
         lineas.push(`${margenX} 676 520 28 re f`);
@@ -1749,7 +1774,7 @@
         escribirTexto(lineas, "F2", 10, margenX + 120, 686, "Nombre completo");
         escribirTexto(lineas, "F2", 10, margenX + 410, 686, "Contraseña");
 
-        pagina.forEach((row, index) => {
+        pagina.filas.forEach((row, index) => {
           const y = inicioY - 60 - (index + 1) * altoFila;
           if (index % 2 === 0) {
             lineas.push("1 1 1 rg");
@@ -1764,6 +1789,7 @@
         });
 
         lineas.push("0.30 0.36 0.45 rg");
+        escribirTexto(lineas, "F1", 8, margenX, 52, `Generado: ${fechaGeneracion}   Página ${indicePagina + 1} de ${paginas.length}`);
         escribirTexto(lineas, "F1", 8, margenX, 38, "Documento para uso interno de dirección. Resguardar las credenciales de forma segura.");
         lineas.push("Q");
 
