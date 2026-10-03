@@ -109,6 +109,37 @@ test("el detalle del primer alumno se abre hacia abajo", async () => {
   assert.match(css, /tbody tr:first-child \.score-detail\s*\{[\s\S]*?bottom:\s*auto;/);
 });
 
+test("el Director puede iniciar el restablecimiento secuencial de estudiantes", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const funcion = html.match(
+    /async function restablecerPasswordsEstudiantes\(\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    async function cargarEstudiantesDirector)/,
+  )?.[0];
+
+  assert.ok(funcion, "No se encontró el restablecimiento de contraseñas estudiantiles");
+
+  const solicitudes = [];
+  const mensajes = [];
+  const contexto = {
+    confirm: () => true,
+    api: async (ruta, opciones) => {
+      solicitudes.push([ruta, opciones]);
+      return { estudiantes: 3 };
+    },
+    mostrarMensaje: (...mensaje) => mensajes.push(mensaje),
+    cargarEstudiantesDirector: async () => {},
+  };
+  vm.createContext(contexto);
+  vm.runInContext(funcion, contexto);
+  await contexto.restablecerPasswordsEstudiantes();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(solicitudes)),
+    [["/director/estudiantes/restablecer-passwords", { method: "POST" }]],
+  );
+  assert.equal(mensajes[0][0], "mensajeEstudiantesDir");
+  assert.equal(mensajes[0][2], "success");
+});
+
 test("el menú móvil del estudiante muestra sus datos académicos", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(

@@ -223,6 +223,7 @@
           <div class="action-row">
             <button class="btn-primary" onclick="importarEstudiantesDirector()">Importar estudiantes</button>
             <button class="btn-dark" onclick="descargarPdfCredencialesEstudiantes()">Descargar PDF de contraseñas</button>
+            <button class="btn-danger" onclick="restablecerPasswordsEstudiantes()">Restablecer contraseñas de estudiantes</button>
           </div>
           <div id="mensajeEstudiantesDir" class="message"></div>
           <div class="table-wrapper">
@@ -1401,6 +1402,19 @@
         await cargarDocentes();
       } catch (error) {
         mostrarMensaje("mensajeDocentes", error.message, "error");
+      }
+    }
+
+    async function restablecerPasswordsEstudiantes() {
+      const confirmar = confirm("Se reemplazarán las contraseñas de todos los estudiantes activos con 000001, 000002, 000003 y así sucesivamente según el carnet. ¿Desea continuar?");
+      if (!confirmar) return;
+
+      try {
+        const data = await api("/director/estudiantes/restablecer-passwords", { method: "POST" });
+        mostrarMensaje("mensajeEstudiantesDir", `Contraseñas restablecidas para ${data.estudiantes} estudiantes.`, "success");
+        await cargarEstudiantesDirector();
+      } catch (error) {
+        mostrarMensaje("mensajeEstudiantesDir", error.message, "error");
       }
     }
 

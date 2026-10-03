@@ -14,6 +14,8 @@ import secrets
 import string
 import unicodedata
 
+from passwords import generar_password_secuencial
+
 import psycopg2
 import psycopg2.errors
 import psycopg2.extras
@@ -1693,6 +1695,46 @@ def listar_estudiantes():
         return [limpiar_fila(fila) for fila in cursor.fetchall()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el servidor: {str(e)}")
+    finally:
+        cerrar_conexion(cursor, conn)
+
+
+@app.post("/director/estudiantes/restablecer-passwords")
+def restablecer_passwords_estudiantes():
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(
+            """
+            SELECT usuario
+            FROM usuarios
+            WHERE rol = 'estudiante' AND estado = TRUE
+            ORDER BY usuario
+            FOR UPDATE;
+            """
+        )
+        cuentas = cursor.fetchall()
+
+        for indice, cuenta in enumerate(cuentas, start=1):
+            password = generar_password_secuencial(indice)
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET password_hash = %s,
+                    password_temporal = %s
+                WHERE rol = 'estudiante' AND usuario = %s;
+                """,
+                (hash_password(password), password, cuenta["usuario"]),
+            )
+
+        conn.commit()
+        return {"estudiantes": len(cuentas)}
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al restablecer contraseñas: {str(e)}")
     finally:
         cerrar_conexion(cursor, conn)
 
