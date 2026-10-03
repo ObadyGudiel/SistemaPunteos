@@ -102,6 +102,13 @@ test("el menú móvil tiene flecha de cierre y salida junto a las opciones", asy
   assert.doesNotMatch(estilosMoviles, /\.mobile-menu-logout\s*\{\s*width:\s*100%;\s*margin-top:\s*auto;/);
 });
 
+test("el detalle del primer alumno se abre hacia abajo", async () => {
+  const css = await readFile(new URL("../css/styles.css", import.meta.url), "utf8");
+
+  assert.match(css, /tbody tr:first-child \.score-detail\s*\{[\s\S]*?top:\s*calc\(100% \+ 10px\);/);
+  assert.match(css, /tbody tr:first-child \.score-detail\s*\{[\s\S]*?bottom:\s*auto;/);
+});
+
 test("el menú móvil del estudiante muestra sus datos académicos", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(

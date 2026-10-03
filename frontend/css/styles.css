@@ -1062,6 +1062,24 @@ code {
   transform: translate(-50%, 0);
 }
 
+tbody tr:first-child .score-detail {
+  top: calc(100% + 10px);
+  bottom: auto;
+  transform: translate(-50%, -6px);
+}
+
+tbody tr:first-child .score-detail::after {
+  top: auto;
+  bottom: 100%;
+  transform: translate(-50%, 5px) rotate(45deg);
+}
+
+tbody tr:first-child .score-tooltip:hover .score-detail,
+tbody tr:first-child .score-tooltip:focus .score-detail,
+tbody tr:first-child .score-tooltip:focus-within .score-detail {
+  transform: translate(-50%, 0);
+}
+
 .empty-row:hover {
   background: white;
 }
