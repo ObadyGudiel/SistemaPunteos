@@ -140,6 +140,19 @@ test("el Director puede iniciar el restablecimiento secuencial de estudiantes", 
   assert.equal(mensajes[0][2], "success");
 });
 
+test("la tabla de estudiantes muestra la contraseña junto al carnet", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const funcion = html.match(
+    /async function cargarEstudiantesDirector\(\) \{[\s\S]*?\r?\n    \}(?=\r?\n\r?\n    async function crearEstudiante)/,
+  )?.[0];
+
+  assert.match(html, /<tr><th>Carnet<\/th><th>Contraseña<\/th><th>Nombre<\/th>/);
+  assert.match(
+    funcion ?? "",
+    /<td>\$\{escapar\(row\.codigo_carnet\)\}<\/td>\s*<td><code>\$\{escapar\(row\.password_temporal \|\| ""\)\}<\/code><\/td>/,
+  );
+});
+
 test("el menú móvil del estudiante muestra sus datos académicos", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const funcion = html.match(

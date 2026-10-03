@@ -229,7 +229,7 @@
           <div class="table-wrapper">
             <table>
               <thead>
-                <tr><th>Carnet</th><th>Nombre</th><th>Carrera</th><th>Grado</th><th>Ciclo</th><th>Contraseña</th></tr>
+                <tr><th>Carnet</th><th>Contraseña</th><th>Nombre</th><th>Carrera</th><th>Grado</th><th>Ciclo</th></tr>
               </thead>
               <tbody id="tablaEstudiantesDir"></tbody>
             </table>
@@ -1432,11 +1432,11 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${escapar(row.codigo_carnet)}</td>
+          <td><code>${escapar(row.password_temporal || "")}</code></td>
           <td>${escapar(row.apellidos)}, ${escapar(row.nombres)}</td>
           <td>${escapar(row.carrera || "")}</td>
           <td>${escapar(row.grado || "")}</td>
-          <td>${escapar(row.ciclo_escolar || "")}</td>
-          <td><code>${escapar(row.password_temporal || "")}</code></td>`;
+          <td>${escapar(row.ciclo_escolar || "")}</td>`;
         tbody.appendChild(tr);
       });
     }
